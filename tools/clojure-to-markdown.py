@@ -23,7 +23,7 @@ def main():
         elif line[0] == '(':
             if state != PRELUDE:
                 if state != SEXP:
-                    sys.stdout.write('\n\n``` {.clojure .numberLines}\n')
+                    sys.stdout.write('\n\n``` {.clojure}\n')
                 sys.stdout.write(line)
                 state = SEXP
         elif whitespace_re.match(line[0]):
