@@ -1,8 +1,10 @@
 (ns uk.co.tombooth.pollock
   (:require [quil.core :as q :include-macros true]))
 
-;; # Painting by Clojure <small>by <a href="http://tombooth.co.uk">Tom Booth</a></small>
-;;
+;; ---
+;; title: Painting by Clojure
+;; ...
+
 ;; Learning Clojure by build a digital Jackson Pollock.
 
 
