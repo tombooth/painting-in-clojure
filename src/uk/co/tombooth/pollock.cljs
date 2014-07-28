@@ -10,6 +10,7 @@
 
 ;; <canvas id="pollock"></canvas>
 ;; <button id="add">Add stroke</button>
+;; <button id="fill">Fill canvas</button>
 
 
 ;; Dimensions of space
@@ -68,9 +69,10 @@
         b (* 2 velocity)
         c (* 2 position)
         discriminant (- (* b b) (* 4 a c))
-        minus-b (- 0 b)]
-    (max (/ (+ minus-b (Math/sqrt discriminant)) (* 2 a))
-         (/ (- minus-b (Math/sqrt discriminant)) (* 2 a)))))
+        minus-b (- 0 b)
+        add-sqrt (/ (+ minus-b (Math/sqrt discriminant)) (* 2 a))
+        minus-sqrt (/ (- minus-b (Math/sqrt discriminant)) (* 2 a))]
+    (max add-sqrt minus-sqrt)))
 
 ;; now we can get the time we need to be able to derive the final
 ;; velocity and position of any dimension
@@ -131,22 +133,26 @@
   (* (vector-absolute velocity) mass))
 
 ;; we need to work out if an impact should splatter off some of its
-;; paint
+;; paint. This should include some randomess as it is likely a
+;; consecutive points will all splatter and including some randomness
+;; will make it look at little less 'generated'
 
-(def min-impact-force-for-splatter 1)
+(def min-impact-force-for-splatter 50)
 
 (defn does-impact-splatter? [mass velocity]
-  (> (impact-force mass velocity) min-impact-force-for-splatter))
+  (and (> (impact-force mass velocity) min-impact-force-for-splatter)
+       (> (rand) 0.8)))
 
-;; if an impact splatters then we will need to reflect its velocity
+;; if an impact splatters then we will need to bounce its velocity
 ;; vector as this is the direction it will exit its current position
 
-;; the equation to reflect a vector, V, is:
+;; the equation to bounce a vector, V, off a plane with normal, N, is:
+;; needs rewriting http://mathworld.wolfram.com/Reflection.html
 ;; 
 ;;  N is the normal vector of the plane
 ;;  R is the reflected vector
 ;; 
-;;  R = (2 * (V.N) * N) - V
+;;  R = V - (2 * (V.N) * N)
 
 (def canvas-normal [0 1 0])
 
@@ -164,23 +170,21 @@
 
 ;; blah? need a better name for this variable
 
-(defn reflect-vector [vector normal]
+(defn bounce-vector [vector normal]
   (let [vector-dot-normal (dot-product vector normal)
-        blah (vector-multiply-by-constant vector (* 2 vector-dot-normal))]
-    (vector-subtraction blah vector)))
+        blah (vector-multiply-by-constant normal (* 2 vector-dot-normal))]
+    (vector-subtraction vector blah)))
 
-;; reflect vector will give a vector that is still 'directed' into the
-;; impact point so when we are using it in the splatter code we will
-;; need to reverse this vector by multplying by -1
 
 ;; splatter will never take all of the paint and velocity with it so
 ;; we need a dampening constant
 
-(def splatter-dampening-constant 0.3)
+(def splatter-dampening-constant 0.7)
 
 (defn splatter-vector [velocity]
-  (vector-multiply-by-constant (reflect-vector velocity canvas-normal)
-                               (* -1 splatter-dampening-constant)))
+  (let [bounced-vector (bounce-vector velocity canvas-normal)]
+    (vector-multiply-by-constant bounced-vector
+                                 splatter-dampening-constant)))
 
 
 ;; doing paths
@@ -229,12 +233,16 @@
                                            (random-vector-between (- 0 bounds) bounds))
                                step-vector bounds))))
 
-(defn anchor-points [position min-distance max-distance]
+;; what is an anchor point for a bezier curve?
+;; added min/max steps to try and guide whether this is a flick, as
+;; well as the variation in random positions
+
+(defn anchor-points [position min-distance max-distance min-steps max-steps variation]
   (let [direction       (random-unit-vector)
         distance        (random-between min-distance max-distance)
-        steps           (random-between 3 15)
+        steps           (random-between min-steps max-steps)
         step-vector     (vector-multiply-by-constant direction (/ distance steps))
-        random-positions (take steps (random-path position step-vector 0.2))
+        random-positions (take steps (random-path position step-vector variation))
         end-position    (vector-add position
                                     (vector-multiply-by-constant step-vector steps))]
     (conj (vec random-positions) end-position)))
@@ -262,24 +270,100 @@
         points (map #(for-t % [x-vals y-vals z-vals]) (range 0 1 step-amount))]
     points))
 
+;; this can generate paths that go below the canvas, we should set
+;; these to 0 as it is the equivalent of painting on the canvas
 
-;; need to do stuff like adding velocity and paint distribution down path
+(defn ensure-above-canvas [path]
+  (map (fn [[i j k]] [i (if (< j 0) 0 j) k]) path))
 
-;; make a thing
+
+;; all the points along the generated path should have an associated
+;; velocity. To start with we can generate a linear velocity along the
+;; path, given a randomised total time to traverse the path and the
+;; total length of the path.
+
+;; In order to calculate the length of the paths, we will want to do
+;; something similar to a map but with pairs of values. Using this we
+;; can take two points, calculate the distance between them and then
+;; sum all the distances
+
+(defn map-2 [f coll]
+  (when-let [s (seq coll)]
+    (let [s1 (first s)
+          s2 (second s)]
+      (if (not (nil? s2))
+        (cons (f (first s) (second s)) (map-2 f (rest s)))))))
+
+;; in order to find the distance between two points we need subtract
+;; the two vectors, square and sum the resultant dimensions and then
+;; take the root. (https://en.wikipedia.org/wiki/Euclidean_distance)
+
+(defn vector-multiply [vector1 vector2]
+  (map * vector1 vector2))
+
+(defn distance-between-points [point1 point2]
+  (let [difference-vector (vector-subtraction point1 point2)
+        summed-vector (reduce + (vector-multiply difference-vector difference-vector))]
+    (Math/sqrt summed-vector)))
+
+(defn path-length [path]
+  (reduce + (map-2 distance-between-points path)))
+
+
+(defn vector-divide-by-const [vector const]
+  (map #(/ % const) vector))
+
+(defn velocity-between [point1 point2 total-time total-distance]
+  (let [difference-vector (vector-subtraction point1 point2)
+        time-between (* total-time (/ (distance-between-points point1 point2)
+                                      total-distance))]
+    (vector-divide-by-const difference-vector time-between)))
+
+;; this calculation will leave off the last points velocity, so for
+;; now we can just set it to 0
+
+(defn path-velocities [path total-time]
+  (let [total-distance   (path-length path)
+        number-of-points (count path)]
+    (conj (vec (map-2 #(velocity-between %1 %2
+                                         total-time
+                                         total-distance)
+                      path))
+          [0 0 0])))
+
+;; as well as the velocity at each point along the path, we also need
+;; how much paint there is falling. Again to keep life simple we are
+;; going to model this as a linear flow along the path with there
+;; always being no paint left.
+
+(defn path-masses [path initial-mass]
+  (let [number-of-points (count path)
+        step (- 0 (/ initial-mass number-of-points))]
+    (take number-of-points (range initial-mass 0 step))))
+
+
+;; now we need to assemble all of the above functions into something
+;; that will work out everything
 
 (defn do-the-things []
-  (let [position (starting-point)
-        path (de-casteljau (anchor-points position 0.1 2) 0.01)
-        velocities (take (count path) (repeat [3 0 0]))
-        masses (take (count path) (repeat 10))
+  (let [position       (starting-point)
+        total-time     (random-between 1 5)
+        path           (ensure-above-canvas (de-casteljau (anchor-points position 0.1 2 3 15 0.4) 0.005))
+        velocities     (path-velocities path total-time)
+        masses         (path-masses path (random-between 5 30))
         projected-path (map #(project-point %1 %2) path velocities)
-        splatter (map (fn [[position velocity] mass]
-                        (if (does-impact-splatter? mass velocity)
-                          [position (splatter-vector velocity)]
-                          nil))
-                      projected-path masses)
-        projected-splatter (map #(if (nil? %) nil (apply project-point %)) splatter)]
-    {:path projected-path
+        splatter       (map (fn [[position velocity] mass]
+                              (if (does-impact-splatter? mass velocity)
+                                [position (splatter-vector velocity) (* mass splatter-dampening-constant)]
+                                nil))
+                            projected-path masses)
+        projected-splatter (map (fn [[position velocity mass :as point]]
+                                  (if (nil? point)
+                                    nil
+                                    (conj (vec (project-point position velocity)) mass)))
+                                splatter)]
+    {:air path
+     :path (map #(conj %1 %2) projected-path masses)
      :splatter (filter #(not-any? nil? %) (partition-by nil? projected-splatter))}))
 
 
@@ -293,35 +377,31 @@
   [(Math/floor (metres-to-pixels i))
    (Math/floor (metres-to-pixels k))])
 
-(defn map-2 [f coll]
-  (when-let [s (seq coll)]
-    (let [s1 (first s)
-          s2 (second s)]
-      (if (not (nil? s2))
-        (cons (f (first s) (second s)) (map-2 f (rest s)))))))
 
 (defn draw-path [path]
-  (q/begin-shape :lines)
   (doall
-   (map-2 (fn [[position1 _] [position2 _]]
-            (apply q/vertex (position-to-pixel position1))
-            (apply q/vertex (position-to-pixel position2)))
-          path))
-  (q/end-shape))
+   (map-2 (fn [[position1 _ mass] [position2 _ _]]
+            (q/stroke-weight mass)
+            (apply q/line (concat (position-to-pixel position1) (position-to-pixel position2))))
+          path)))
 
-(defn make-shape []
-  (let [{projected-path :path
-         splatter-paths :splatter} (do-the-things)]
-    (.log js/console (clj->js splatter-paths))
-    (q/stroke-weight 10)
-    (q/stroke (q/color (rand-int 256) (rand-int 256) (rand-int 256)))
-    (draw-path projected-path)
-    (doall (map draw-path splatter-paths))))
+(defn draw-splats [path]
+  (doall (map (fn [[position _ mass]]
+                (q/stroke-weight mass)
+                (apply q/point (position-to-pixel position)))
+              path)))
+
+(defn make-shape [& any]
+  (q/with-sketch (q/get-sketch-by-id "pollock")
+    (let [{:keys [path splatter] :as path-hash} (do-the-things)]
+      (.log js/console (clj->js path-hash))
+      (q/stroke (q/color (rand-int 256) (rand-int 256) (rand-int 256)))
+      (draw-path path)
+      (doall (map draw-splats splatter)))))
 
 (defn draw []
   (q/background 255)
-  (q/fill 0)
-  (make-shape))
+  (q/fill 0))
 
 (q/defsketch pollock
   :setup draw
@@ -330,7 +410,16 @@
 
 (.addEventListener (.querySelector js/document "#add")
                    "click"
+                   make-shape)
+
+(def interval-ref (atom nil))
+(def fill-count (atom 0))
+(.addEventListener (.querySelector js/document "#fill")
+                   "click"
                    (fn [e]
-                     (q/with-sketch (q/get-sketch-by-id "pollock")
-                       (make-shape))))
+                     (reset! interval-ref
+                             (js/setInterval (fn []
+                                               (if (> @fill-count 500)
+                                                 (js/clearInterval @interval-ref)
+                                                 (do (make-shape) (swap! fill-count inc)))) 100))))
 
