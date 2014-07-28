@@ -15,431 +15,240 @@
       <h1>Painting by Clojure<small>by <a href="/">Tom Booth</a></small></h1>
     </header>
     <main>
-      <p>Learning Clojure by build a digital Jackson Pollock.</p>
-      <canvas id="pollock"></canvas>
-      <button id="add">
-      Add stroke
-      </button>
-      
-      
-      <p>Dimensions of space</p>
-      <table class="sourceCode clojure numberLines"><tr class="sourceCode"><td class="lineNumbers"><pre>1
-      2
-      3
-      4
-      5
-      </pre></td><td class="sourceCode"><pre><code class="sourceCode clojure">(<span class="kw">def</span><span class="fu"> space </span>[<span class="dv">8</span>   <span class="co">;; width</span>
-                  <span class="dv">5</span>   <span class="co">;; height</span>
-                  <span class="dv">6</span>]) <span class="co">;; depth</span>
-      
-      (<span class="kw">def</span><span class="fu"> pixels-per-metre </span><span class="dv">100</span>)</code></pre></td></tr></table>
-      <p>How would you convert from metres to pixels?</p>
-      <table class="sourceCode clojure numberLines"><tr class="sourceCode"><td class="lineNumbers"><pre>1
-      2
-      </pre></td><td class="sourceCode"><pre><code class="sourceCode clojure">(<span class="kw">defn</span><span class="fu"> metres-to-pixels </span>[metres]
-        (<span class="kw">*</span> metres pixels-per-metre))</code></pre></td></tr></table>
-      <p>Mainly want to be working in pixels so store the space in pixels</p>
-      <table class="sourceCode clojure numberLines"><tr class="sourceCode"><td class="lineNumbers"><pre>1
-      </pre></td><td class="sourceCode"><pre><code class="sourceCode clojure">(<span class="kw">def</span><span class="fu"> space-in-pixels </span>(<span class="kw">map</span> metres-to-pixels space))</code></pre></td></tr></table>
-      <p>We need to pick a place to start the stroke. It will be somewhere inside of the space</p>
-      <table class="sourceCode clojure numberLines"><tr class="sourceCode"><td class="lineNumbers"><pre>1
-      2
-      3
-      4
-      5
-      6
-      </pre></td><td class="sourceCode"><pre><code class="sourceCode clojure">(<span class="kw">defn</span><span class="fu"> starting-point </span>[]
-        (<span class="kw">let</span> [[width height depth] space]
-          [(<span class="kw">rand</span> width)
-           (<span class="kw">rand</span> height)
-           (<span class="kw">rand</span> depth)]))
-      </code></pre></td></tr></table>
-      <p>To start off with lets assume that the paint is falling and has 0 velocity of its own when it starts from the brush</p>
-      <p>We need to know gravity, measured in metres per second</p>
-      <table class="sourceCode clojure numberLines"><tr class="sourceCode"><td class="lineNumbers"><pre>1
-      2
-      </pre></td><td class="sourceCode"><pre><code class="sourceCode clojure">(<span class="kw">def</span><span class="fu"> gravity </span>[<span class="dv">0</span> -<span class="fl">9.8</span> <span class="dv">0</span>])
-      </code></pre></td></tr></table>
-      <p>we need to know the amount of time it is going to take the paint to fall, which we can work out based on the y dimension alone</p>
-      <p>we know the initial position and velocity, final position and acceleration and we need to find the time. We cant use the equation r = r0 + v0 * t + at^2/2 we need to use the quadratic equation to solve for t rearranged we get at^2 + 2v0t + 2r0 - 2r = 0 in quad equation: a = a b = 2v0 c = 2r0 - 2r r (final position) is always going to be 0 so, c = 2r0</p>
-      <table class="sourceCode clojure numberLines"><tr class="sourceCode"><td class="lineNumbers"><pre>1
-      2
-      3
-      4
-      5
-      6
-      7
-      8
-      </pre></td><td class="sourceCode"><pre><code class="sourceCode clojure">(<span class="kw">defn</span><span class="fu"> time-to-canvas </span>[position velocity acceleration]
-        (<span class="kw">let</span> [a acceleration
-              b (<span class="kw">*</span> <span class="dv">2</span> velocity)
-              c (<span class="kw">*</span> <span class="dv">2</span> position)
-              discriminant (<span class="kw">-</span> (<span class="kw">*</span> b b) (<span class="kw">*</span> <span class="dv">4</span> a c))
-              minus-b (<span class="kw">-</span> <span class="dv">0</span> b)]
-          (<span class="kw">max</span> (<span class="kw">/</span> (<span class="kw">+</span> minus-b (Math/sqrt discriminant)) (<span class="kw">*</span> <span class="dv">2</span> a))
-               (<span class="kw">/</span> (<span class="kw">-</span> minus-b (Math/sqrt discriminant)) (<span class="kw">*</span> <span class="dv">2</span> a)))))</code></pre></td></tr></table>
-      <p>now we can get the time we need to be able to derive the final velocity and position of any dimension</p>
-      <p>v = at + v0</p>
-      <table class="sourceCode clojure numberLines"><tr class="sourceCode"><td class="lineNumbers"><pre>1
-      2
-      </pre></td><td class="sourceCode"><pre><code class="sourceCode clojure">(<span class="kw">defn</span><span class="fu"> velocity-at </span>[<span class="kw">time</span> initial-velocity acceleration]
-        (<span class="kw">+</span> (<span class="kw">*</span> acceleration <span class="kw">time</span>) initial-velocity))</code></pre></td></tr></table>
-      <p>for position we can use the same equation we used to derive the time</p>
-      <table class="sourceCode clojure numberLines"><tr class="sourceCode"><td class="lineNumbers"><pre>1
-      2
-      3
-      4
-      </pre></td><td class="sourceCode"><pre><code class="sourceCode clojure">(<span class="kw">defn</span><span class="fu"> position-at </span>[<span class="kw">time</span> initial-position initial-velocity acceleration]
-        (<span class="kw">+</span> initial-position
-           (<span class="kw">*</span> initial-velocity <span class="kw">time</span>)
-           (<span class="kw">/</span> (<span class="kw">*</span> acceleration <span class="kw">time</span> <span class="kw">time</span>) <span class="dv">2</span>)))</code></pre></td></tr></table>
-      <p>we can now link these up into a function to get the final position and velocity for a point</p>
-      <table class="sourceCode clojure numberLines"><tr class="sourceCode"><td class="lineNumbers"><pre>1
-      2
-      3
-      4
-      5
-      6
-      7
-      8
-      9
-      10
-      11
-      12
-      13
-      14
-      15
-      16
-      17
-      18
-      </pre></td><td class="sourceCode"><pre><code class="sourceCode clojure">(<span class="kw">defn</span><span class="fu"> project-point </span>[position velocity]
-        (<span class="kw">let</span> [[i j k]            position
-              [vi vj vk]         velocity
-              [ai aj ak]         gravity
-              
-              <span class="kw">time</span>               (time-to-canvas j vj aj)
-              
-              projected-position [(position-at <span class="kw">time</span> i vi ai)
-                                  <span class="dv">0</span>  <span class="co">;; we don&#39;t need to calculate as it</span>
-                                     <span class="co">;; should be 0, on the canvas</span>
-                                  (position-at <span class="kw">time</span> k vk ak)]
-              
-              projected-velocity [(velocity-at <span class="kw">time</span> vi ai)
-                                  (velocity-at <span class="kw">time</span> vj aj)
-                                  (velocity-at <span class="kw">time</span> vk ak)]]
-          [projected-position
-           projected-velocity]))
-      </code></pre></td></tr></table>
-      <p>splatter now that we know the impact velocity of a point, we know need to work out whether that impact should splatter</p>
-      <p>we need to work out the impact force as a scalar so that we can define a cut off</p>
-      <p>this will require working out the absolute value of a vector. We do this by summing up the squares of the dimensions and then taking th root</p>
-      <table class="sourceCode clojure numberLines"><tr class="sourceCode"><td class="lineNumbers"><pre>1
-      2
-      </pre></td><td class="sourceCode"><pre><code class="sourceCode clojure">(<span class="kw">defn</span><span class="fu"> vector-absolute </span>[<span class="kw">vector</span>]
-        (Math/sqrt (<span class="kw">reduce</span> <span class="kw">+</span> (<span class="kw">map</span> #(<span class="kw">*</span> % %) <span class="kw">vector</span>))))</code></pre></td></tr></table>
-      <p>need something about why it is ok this is velocity and not acceleration, maybe because it is the relative acceleration of the imapct of the two objects (paint has velocity, cavnas doesn't so accel = velocity?)</p>
-      <table class="sourceCode clojure numberLines"><tr class="sourceCode"><td class="lineNumbers"><pre>1
-      2
-      </pre></td><td class="sourceCode"><pre><code class="sourceCode clojure">(<span class="kw">defn</span><span class="fu"> impact-force </span>[mass velocity]
-        (<span class="kw">*</span> (vector-absolute velocity) mass))</code></pre></td></tr></table>
-      <p>we need to work out if an impact should splatter off some of its paint</p>
-      <table class="sourceCode clojure numberLines"><tr class="sourceCode"><td class="lineNumbers"><pre>1
-      2
-      3
-      4
-      </pre></td><td class="sourceCode"><pre><code class="sourceCode clojure">(<span class="kw">def</span><span class="fu"> min-impact-force-for-splatter </span><span class="dv">1</span>)
-      
-      (<span class="kw">defn</span><span class="fu"> does-impact-splatter</span>? [mass velocity]
-        (<span class="kw">&gt;</span> (impact-force mass velocity) min-impact-force-for-splatter))</code></pre></td></tr></table>
-      <p>if an impact splatters then we will need to reflect its velocity vector as this is the direction it will exit its current position</p>
-      <p>the equation to reflect a vector, V, is:</p>
-      <p>N is the normal vector of the plane R is the reflected vector</p>
-      <p>R = (2 * (V.N) * N) - V</p>
-      <table class="sourceCode clojure numberLines"><tr class="sourceCode"><td class="lineNumbers"><pre>1
-      </pre></td><td class="sourceCode"><pre><code class="sourceCode clojure">(<span class="kw">def</span><span class="fu"> canvas-normal </span>[<span class="dv">0</span> <span class="dv">1</span> <span class="dv">0</span>])</code></pre></td></tr></table>
-      <p>dot product is he sum of the multiples of the dimensions</p>
-      <table class="sourceCode clojure numberLines"><tr class="sourceCode"><td class="lineNumbers"><pre>1
-      2
-      3
-      4
-      5
-      6
-      7
-      8
-      9
-      </pre></td><td class="sourceCode"><pre><code class="sourceCode clojure">(<span class="kw">defn</span><span class="fu"> dot-product </span>[vector1 vector2]
-        (<span class="kw">reduce</span> <span class="kw">+</span> (<span class="kw">map</span> <span class="kw">*</span> vector1 vector2)))
-      
-      (<span class="kw">defn</span><span class="fu"> vector-subtraction </span>[vector1 vector2]
-        (<span class="kw">map</span> <span class="kw">-</span> vector1 vector2))
-      
-      (<span class="kw">defn</span><span class="fu"> vector-multiply-by-constant </span>[<span class="kw">vector</span> constant]
-        (<span class="kw">map</span> #(<span class="kw">*</span> % constant) <span class="kw">vector</span>))
-      </code></pre></td></tr></table>
-      <p>blah? need a better name for this variable</p>
-      <table class="sourceCode clojure numberLines"><tr class="sourceCode"><td class="lineNumbers"><pre>1
-      2
-      3
-      4
-      </pre></td><td class="sourceCode"><pre><code class="sourceCode clojure">(<span class="kw">defn</span><span class="fu"> reflect-vector </span>[<span class="kw">vector</span> normal]
-        (<span class="kw">let</span> [vector-dot-normal (dot-product <span class="kw">vector</span> normal)
-              blah (vector-multiply-by-constant <span class="kw">vector</span> (<span class="kw">*</span> <span class="dv">2</span> vector-dot-normal))]
-          (vector-subtraction blah <span class="kw">vector</span>)))</code></pre></td></tr></table>
-      <p>reflect vector will give a vector that is still 'directed' into the impact point so when we are using it in the splatter code we will need to reverse this vector by multplying by -1</p>
-      <p>splatter will never take all of the paint and velocity with it so we need a dampening constant</p>
-      <table class="sourceCode clojure numberLines"><tr class="sourceCode"><td class="lineNumbers"><pre>1
-      2
-      3
-      4
-      5
-      6
-      </pre></td><td class="sourceCode"><pre><code class="sourceCode clojure">(<span class="kw">def</span><span class="fu"> splatter-dampening-constant </span><span class="fl">0.3</span>)
-      
-      (<span class="kw">defn</span><span class="fu"> splatter-vector </span>[velocity]
-        (vector-multiply-by-constant (reflect-vector velocity canvas-normal)
-                                     (<span class="kw">*</span> -<span class="dv">1</span> splatter-dampening-constant)))
-      </code></pre></td></tr></table>
-      <p>doing paths having all the code for dealing with a point is all well and good, but we need to be dealing with paths</p>
-      <p>I've had a play with path generation before and besier curves gave a nice output</p>
-      <p>De Casteljau's algorithm is the way we shall be coming up with paths</p>
-      <p>first off we need to generate the anchor points for the curve</p>
-      <p>to do this we will need to be able to: - get a random number between two points (for distance, steps) - get a random direction - add vectors</p>
-      <table class="sourceCode clojure numberLines"><tr class="sourceCode"><td class="lineNumbers"><pre>1
-      2
-      </pre></td><td class="sourceCode"><pre><code class="sourceCode clojure">(<span class="kw">defn</span><span class="fu"> random-between </span>[lower-bound upper-bound]
-        (<span class="kw">+</span> lower-bound (<span class="kw">rand</span> (<span class="kw">-</span> upper-bound lower-bound))))</code></pre></td></tr></table>
-      <p>need some blurb about this algo, hopefully find something from the asimuth</p>
-      <table class="sourceCode clojure numberLines"><tr class="sourceCode"><td class="lineNumbers"><pre>1
-      2
-      3
-      4
-      5
-      6
-      7
-      8
-      9
-      10
-      </pre></td><td class="sourceCode"><pre><code class="sourceCode clojure">(<span class="kw">defn</span><span class="fu"> random-unit-vector </span>[]
-        (<span class="kw">let</span> [asimuth (<span class="kw">*</span> (<span class="kw">rand</span>) <span class="dv">2</span> Math/PI)
-              k (<span class="kw">-</span> (<span class="kw">rand</span> <span class="dv">2</span>) <span class="dv">1</span>)
-              a (Math/sqrt (<span class="kw">-</span> <span class="dv">1</span> (<span class="kw">*</span> k k)))
-              i (<span class="kw">*</span> (Math/cos asimuth) a)
-              j (<span class="kw">*</span> (Math/sin asimuth) a)]
-          [i j k]))
-      
-      (<span class="kw">defn</span><span class="fu"> vector-add </span>[vector1 vector2]
-        (<span class="kw">map</span> <span class="kw">+</span> vector1 vector2))</code></pre></td></tr></table>
-      <p>need to walk between a start and end position in a random fashion</p>
-      <table class="sourceCode clojure numberLines"><tr class="sourceCode"><td class="lineNumbers"><pre>1
-      2
-      3
-      4
-      5
-      6
-      7
-      8
-      9
-      10
-      11
-      12
-      13
-      14
-      15
-      16
-      17
-      18
-      19
-      20
-      21
-      </pre></td><td class="sourceCode"><pre><code class="sourceCode clojure">(<span class="kw">defn</span><span class="fu"> random-vector-between </span>[lower upper]
-        [(random-between lower upper)
-         (random-between lower upper)
-         (random-between lower upper)])
-      
-      (<span class="kw">defn</span><span class="fu"> random-path </span>[position step-vector bounds]
-        (<span class="kw">cons</span> position
-              (<span class="kw">lazy-seq</span> (random-path (vector-add (vector-add position step-vector)
-                                                 (random-vector-between (<span class="kw">-</span> <span class="dv">0</span> bounds) bounds))
-                                     step-vector bounds))))
-      
-      (<span class="kw">defn</span><span class="fu"> anchor-points </span>[position min-distance max-distance]
-        (<span class="kw">let</span> [direction       (random-unit-vector)
-              distance        (random-between min-distance max-distance)
-              steps           (random-between <span class="dv">3</span> <span class="dv">15</span>)
-              step-vector     (vector-multiply-by-constant direction (<span class="kw">/</span> distance steps))
-              random-positions (<span class="kw">take</span> steps (random-path position step-vector <span class="fl">0.2</span>))
-              end-position    (vector-add position
-                                          (vector-multiply-by-constant step-vector steps))]
-          (<span class="kw">conj</span> (<span class="kw">vec</span> random-positions) end-position)))
-      </code></pre></td></tr></table>
-      <p>de casteljau code ripped from pollock, needs a REWRITE and a whole bunch of explanation</p>
-      <table class="sourceCode clojure numberLines"><tr class="sourceCode"><td class="lineNumbers"><pre>1
-      2
-      3
-      4
-      5
-      6
-      7
-      8
-      9
-      10
-      11
-      12
-      13
-      14
-      15
-      16
-      17
-      18
-      19
-      </pre></td><td class="sourceCode"><pre><code class="sourceCode clojure">(<span class="kw">defn</span><span class="fu"> recur-relation </span>[t a b]
-        (<span class="kw">+</span> (<span class="kw">*</span> t b) (<span class="kw">*</span> a (<span class="kw">-</span> <span class="dv">1</span> t))))
-      
-      (<span class="kw">defn</span><span class="fu"> for-component </span>[t component-vals]
-        (<span class="kw">if</span> (<span class="kw">=</span> (<span class="kw">count</span> component-vals) <span class="dv">1</span>)
-          (<span class="kw">first</span> component-vals)
-          (for-component t
-            (<span class="kw">map</span> #(recur-relation t %<span class="dv">1</span> %<span class="dv">2</span>) component-vals (<span class="kw">rest</span> component-vals)))))
-      
-      (<span class="kw">defn</span><span class="fu"> for-t </span>[t components]
-        (<span class="kw">map</span> #(for-component t %) components))
-      
-      (<span class="kw">defn</span><span class="fu"> de-casteljau </span>[control-points step-amount]
-        (<span class="kw">let</span> [x-vals (<span class="kw">map</span> <span class="kw">first</span> control-points)
-              y-vals (<span class="kw">map</span> <span class="kw">second</span> control-points)
-              z-vals (<span class="kw">map</span> #(<span class="kw">nth</span> % <span class="dv">2</span>) control-points)
-              points (<span class="kw">map</span> #(for-t % [x-vals y-vals z-vals]) (<span class="kw">range</span> <span class="dv">0</span> <span class="dv">1</span> step-amount))]
-          points))
-      </code></pre></td></tr></table>
-      <p>need to do stuff like adding velocity and paint distribution down path</p>
-      <p>make a thing</p>
-      <table class="sourceCode clojure numberLines"><tr class="sourceCode"><td class="lineNumbers"><pre>1
-      2
-      3
-      4
-      5
-      6
-      7
-      8
-      9
-      10
-      11
-      12
-      13
-      14
-      15
-      </pre></td><td class="sourceCode"><pre><code class="sourceCode clojure">(<span class="kw">defn</span><span class="fu"> do-the-things </span>[]
-        (<span class="kw">let</span> [position (starting-point)
-              <span class="kw">path</span> (de-casteljau (anchor-points position <span class="fl">0.1</span> <span class="dv">2</span>) <span class="fl">0.01</span>)
-              velocities (<span class="kw">take</span> (<span class="kw">count</span> <span class="kw">path</span>) (<span class="kw">repeat</span> [<span class="dv">3</span> <span class="dv">0</span> <span class="dv">0</span>]))
-              masses (<span class="kw">take</span> (<span class="kw">count</span> <span class="kw">path</span>) (<span class="kw">repeat</span> <span class="dv">10</span>))
-              projected-path (<span class="kw">map</span> #(project-point %<span class="dv">1</span> %<span class="dv">2</span>) <span class="kw">path</span> velocities)
-              splatter (<span class="kw">map</span> (<span class="kw">fn</span> [[position velocity] mass]
-                              (<span class="kw">if</span> (does-impact-splatter? mass velocity)
-                                [position (splatter-vector velocity)]
-                                nil))
-                            projected-path masses)
-              projected-splatter (<span class="kw">map</span> #(<span class="kw">if</span> (<span class="kw">nil?</span> %) nil (<span class="kw">apply</span> project-point %)) splatter)]
-          {<span class="kw">:path</span> projected-path
-           <span class="kw">:splatter</span> (<span class="kw">filter</span> #(<span class="kw">not-any?</span> <span class="kw">nil?</span> %) (partition-by <span class="kw">nil?</span> projected-splatter))}))
-      </code></pre></td></tr></table>
-      <p>lets draw these things</p>
-      <table class="sourceCode clojure numberLines"><tr class="sourceCode"><td class="lineNumbers"><pre>1
-      2
-      3
-      4
-      5
-      6
-      7
-      8
-      9
-      10
-      11
-      12
-      13
-      14
-      15
-      16
-      17
-      18
-      19
-      20
-      21
-      22
-      23
-      24
-      25
-      26
-      27
-      28
-      29
-      30
-      31
-      32
-      33
-      34
-      35
-      36
-      37
-      38
-      39
-      40
-      41
-      42
-      43
-      44
-      45
-      46
-      47
-      48
-      </pre></td><td class="sourceCode"><pre><code class="sourceCode clojure">(<span class="kw">def</span><span class="fu"> sketch-size</span>
-        (<span class="kw">let</span> [[width _ height] space-in-pixels]
-          [width height]))
-      
-      (<span class="kw">defn</span><span class="fu"> position-to-pixel </span>[[i j k]]
-        [(Math/floor (metres-to-pixels i))
-         (Math/floor (metres-to-pixels k))])
-      
-      (<span class="kw">defn</span><span class="fu"> map-2 </span>[f coll]
-        (<span class="kw">when-let</span> [s (<span class="kw">seq</span> coll)]
-          (<span class="kw">let</span> [s1 (<span class="kw">first</span> s)
-                s2 (<span class="kw">second</span> s)]
-            (<span class="kw">if</span> (<span class="kw">not</span> (<span class="kw">nil?</span> s2))
-              (<span class="kw">cons</span> (f (<span class="kw">first</span> s) (<span class="kw">second</span> s)) (map<span class="dv">-2</span> f (<span class="kw">rest</span> s)))))))
-      
-      (<span class="kw">defn</span><span class="fu"> draw-path </span>[<span class="kw">path</span>]
-        (q/begin-shape <span class="kw">:lines</span>)
-        (<span class="kw">doall</span>
-         (map<span class="dv">-2</span> (<span class="kw">fn</span> [[position1 _] [position2 _]]
-                  (<span class="kw">apply</span> q/vertex (position-to-pixel position1))
-                  (<span class="kw">apply</span> q/vertex (position-to-pixel position2)))
-                <span class="kw">path</span>))
-        (q/end-shape))
-      
-      (<span class="kw">defn</span><span class="fu"> make-shape </span>[]
-        (<span class="kw">let</span> [{projected-path <span class="kw">:path</span>
-               splatter-paths <span class="kw">:splatter</span>} (do-the-things)]
-          (.log js/console (clj-&gt;js splatter-paths))
-          (q/stroke-weight <span class="dv">10</span>)
-          (q/stroke (q/color (<span class="kw">rand-int</span> <span class="dv">256</span>) (<span class="kw">rand-int</span> <span class="dv">256</span>) (<span class="kw">rand-int</span> <span class="dv">256</span>)))
-          (draw-path projected-path)
-          (<span class="kw">doall</span> (<span class="kw">map</span> draw-path splatter-paths))))
-      
-      (<span class="kw">defn</span><span class="fu"> draw </span>[]
-        (q/background <span class="dv">255</span>)
-        (q/fill <span class="dv">0</span>)
-        (make-shape))
-      
-      (q/defsketch pollock
-        <span class="kw">:setup</span> draw
-        <span class="kw">:host</span> <span class="st">&quot;pollock&quot;</span>
-        <span class="kw">:size</span> sketch-size)
-      
-      (.addEventListener (.querySelector js/document <span class="st">&quot;#add&quot;</span>)
-                         <span class="st">&quot;click&quot;</span>
-                         (<span class="kw">fn</span> [<span class="kw">e</span>]
-                           (q/with-sketch (q/get-sketch-by-id <span class="st">&quot;pollock&quot;</span>)
-                             (make-shape))))</code></pre></td></tr></table>
+<p>Learning Clojure by build a digital Jackson Pollock.</p>
+<canvas id="pollock"></canvas>
+<button id="add">
+Add stroke
+</button>
+
+
+<p>Dimensions of space</p>
+<pre class="sourceCode clojure"><code class="sourceCode clojure">(<span class="kw">def</span><span class="fu"> space </span>[<span class="dv">8</span>   <span class="co">;; width</span>
+            <span class="dv">5</span>   <span class="co">;; height</span>
+            <span class="dv">6</span>]) <span class="co">;; depth</span>
+
+(<span class="kw">def</span><span class="fu"> pixels-per-metre </span><span class="dv">100</span>)</code></pre>
+<p>How would you convert from metres to pixels?</p>
+<pre class="sourceCode clojure"><code class="sourceCode clojure">(<span class="kw">defn</span><span class="fu"> metres-to-pixels </span>[metres]
+  (<span class="kw">*</span> metres pixels-per-metre))</code></pre>
+<p>Mainly want to be working in pixels so store the space in pixels</p>
+<pre class="sourceCode clojure"><code class="sourceCode clojure">(<span class="kw">def</span><span class="fu"> space-in-pixels </span>(<span class="kw">map</span> metres-to-pixels space))</code></pre>
+<p>We need to pick a place to start the stroke. It will be somewhere inside of the space</p>
+<pre class="sourceCode clojure"><code class="sourceCode clojure">(<span class="kw">defn</span><span class="fu"> starting-point </span>[]
+  (<span class="kw">let</span> [[width height depth] space]
+    [(<span class="kw">rand</span> width)
+     (<span class="kw">rand</span> height)
+     (<span class="kw">rand</span> depth)]))
+</code></pre>
+<p>To start off with lets assume that the paint is falling and has 0 velocity of its own when it starts from the brush</p>
+<p>We need to know gravity, measured in metres per second</p>
+<pre class="sourceCode clojure"><code class="sourceCode clojure">(<span class="kw">def</span><span class="fu"> gravity </span>[<span class="dv">0</span> -<span class="fl">9.8</span> <span class="dv">0</span>])
+</code></pre>
+<p>we need to know the amount of time it is going to take the paint to fall, which we can work out based on the y dimension alone</p>
+<p>we know the initial position and velocity, final position and acceleration and we need to find the time. We cant use the equation r = r0 + v0 * t + at^2/2 we need to use the quadratic equation to solve for t rearranged we get at^2 + 2v0t + 2r0 - 2r = 0 in quad equation: a = a b = 2v0 c = 2r0 - 2r r (final position) is always going to be 0 so, c = 2r0</p>
+<pre class="sourceCode clojure"><code class="sourceCode clojure">(<span class="kw">defn</span><span class="fu"> time-to-canvas </span>[position velocity acceleration]
+  (<span class="kw">let</span> [a acceleration
+        b (<span class="kw">*</span> <span class="dv">2</span> velocity)
+        c (<span class="kw">*</span> <span class="dv">2</span> position)
+        discriminant (<span class="kw">-</span> (<span class="kw">*</span> b b) (<span class="kw">*</span> <span class="dv">4</span> a c))
+        minus-b (<span class="kw">-</span> <span class="dv">0</span> b)]
+    (<span class="kw">max</span> (<span class="kw">/</span> (<span class="kw">+</span> minus-b (Math/sqrt discriminant)) (<span class="kw">*</span> <span class="dv">2</span> a))
+         (<span class="kw">/</span> (<span class="kw">-</span> minus-b (Math/sqrt discriminant)) (<span class="kw">*</span> <span class="dv">2</span> a)))))</code></pre>
+<p>now we can get the time we need to be able to derive the final velocity and position of any dimension</p>
+<p>v = at + v0</p>
+<pre class="sourceCode clojure"><code class="sourceCode clojure">(<span class="kw">defn</span><span class="fu"> velocity-at </span>[<span class="kw">time</span> initial-velocity acceleration]
+  (<span class="kw">+</span> (<span class="kw">*</span> acceleration <span class="kw">time</span>) initial-velocity))</code></pre>
+<p>for position we can use the same equation we used to derive the time</p>
+<pre class="sourceCode clojure"><code class="sourceCode clojure">(<span class="kw">defn</span><span class="fu"> position-at </span>[<span class="kw">time</span> initial-position initial-velocity acceleration]
+  (<span class="kw">+</span> initial-position
+     (<span class="kw">*</span> initial-velocity <span class="kw">time</span>)
+     (<span class="kw">/</span> (<span class="kw">*</span> acceleration <span class="kw">time</span> <span class="kw">time</span>) <span class="dv">2</span>)))</code></pre>
+<p>we can now link these up into a function to get the final position and velocity for a point</p>
+<pre class="sourceCode clojure"><code class="sourceCode clojure">(<span class="kw">defn</span><span class="fu"> project-point </span>[position velocity]
+  (<span class="kw">let</span> [[i j k]            position
+        [vi vj vk]         velocity
+        [ai aj ak]         gravity
+        
+        <span class="kw">time</span>               (time-to-canvas j vj aj)
+        
+        projected-position [(position-at <span class="kw">time</span> i vi ai)
+                            <span class="dv">0</span>  <span class="co">;; we don&#39;t need to calculate as it</span>
+                               <span class="co">;; should be 0, on the canvas</span>
+                            (position-at <span class="kw">time</span> k vk ak)]
+        
+        projected-velocity [(velocity-at <span class="kw">time</span> vi ai)
+                            (velocity-at <span class="kw">time</span> vj aj)
+                            (velocity-at <span class="kw">time</span> vk ak)]]
+    [projected-position
+     projected-velocity]))
+</code></pre>
+<p>splatter now that we know the impact velocity of a point, we know need to work out whether that impact should splatter</p>
+<p>we need to work out the impact force as a scalar so that we can define a cut off</p>
+<p>this will require working out the absolute value of a vector. We do this by summing up the squares of the dimensions and then taking th root</p>
+<pre class="sourceCode clojure"><code class="sourceCode clojure">(<span class="kw">defn</span><span class="fu"> vector-absolute </span>[<span class="kw">vector</span>]
+  (Math/sqrt (<span class="kw">reduce</span> <span class="kw">+</span> (<span class="kw">map</span> #(<span class="kw">*</span> % %) <span class="kw">vector</span>))))</code></pre>
+<p>need something about why it is ok this is velocity and not acceleration, maybe because it is the relative acceleration of the imapct of the two objects (paint has velocity, cavnas doesn't so accel = velocity?)</p>
+<pre class="sourceCode clojure"><code class="sourceCode clojure">(<span class="kw">defn</span><span class="fu"> impact-force </span>[mass velocity]
+  (<span class="kw">*</span> (vector-absolute velocity) mass))</code></pre>
+<p>we need to work out if an impact should splatter off some of its paint</p>
+<pre class="sourceCode clojure"><code class="sourceCode clojure">(<span class="kw">def</span><span class="fu"> min-impact-force-for-splatter </span><span class="dv">1</span>)
+
+(<span class="kw">defn</span><span class="fu"> does-impact-splatter</span>? [mass velocity]
+  (<span class="kw">&gt;</span> (impact-force mass velocity) min-impact-force-for-splatter))</code></pre>
+<p>if an impact splatters then we will need to reflect its velocity vector as this is the direction it will exit its current position</p>
+<p>the equation to reflect a vector, V, is:</p>
+<p>N is the normal vector of the plane R is the reflected vector</p>
+<p>R = (2 * (V.N) * N) - V</p>
+<pre class="sourceCode clojure"><code class="sourceCode clojure">(<span class="kw">def</span><span class="fu"> canvas-normal </span>[<span class="dv">0</span> <span class="dv">1</span> <span class="dv">0</span>])</code></pre>
+<p>dot product is he sum of the multiples of the dimensions</p>
+<pre class="sourceCode clojure"><code class="sourceCode clojure">(<span class="kw">defn</span><span class="fu"> dot-product </span>[vector1 vector2]
+  (<span class="kw">reduce</span> <span class="kw">+</span> (<span class="kw">map</span> <span class="kw">*</span> vector1 vector2)))
+
+(<span class="kw">defn</span><span class="fu"> vector-subtraction </span>[vector1 vector2]
+  (<span class="kw">map</span> <span class="kw">-</span> vector1 vector2))
+
+(<span class="kw">defn</span><span class="fu"> vector-multiply-by-constant </span>[<span class="kw">vector</span> constant]
+  (<span class="kw">map</span> #(<span class="kw">*</span> % constant) <span class="kw">vector</span>))
+</code></pre>
+<p>blah? need a better name for this variable</p>
+<pre class="sourceCode clojure"><code class="sourceCode clojure">(<span class="kw">defn</span><span class="fu"> reflect-vector </span>[<span class="kw">vector</span> normal]
+  (<span class="kw">let</span> [vector-dot-normal (dot-product <span class="kw">vector</span> normal)
+        blah (vector-multiply-by-constant <span class="kw">vector</span> (<span class="kw">*</span> <span class="dv">2</span> vector-dot-normal))]
+    (vector-subtraction blah <span class="kw">vector</span>)))</code></pre>
+<p>reflect vector will give a vector that is still 'directed' into the impact point so when we are using it in the splatter code we will need to reverse this vector by multplying by -1</p>
+<p>splatter will never take all of the paint and velocity with it so we need a dampening constant</p>
+<pre class="sourceCode clojure"><code class="sourceCode clojure">(<span class="kw">def</span><span class="fu"> splatter-dampening-constant </span><span class="fl">0.3</span>)
+
+(<span class="kw">defn</span><span class="fu"> splatter-vector </span>[velocity]
+  (vector-multiply-by-constant (reflect-vector velocity canvas-normal)
+                               (<span class="kw">*</span> -<span class="dv">1</span> splatter-dampening-constant)))
+</code></pre>
+<p>doing paths having all the code for dealing with a point is all well and good, but we need to be dealing with paths</p>
+<p>I've had a play with path generation before and besier curves gave a nice output</p>
+<p>De Casteljau's algorithm is the way we shall be coming up with paths</p>
+<p>first off we need to generate the anchor points for the curve</p>
+<p>to do this we will need to be able to: - get a random number between two points (for distance, steps) - get a random direction - add vectors</p>
+<pre class="sourceCode clojure"><code class="sourceCode clojure">(<span class="kw">defn</span><span class="fu"> random-between </span>[lower-bound upper-bound]
+  (<span class="kw">+</span> lower-bound (<span class="kw">rand</span> (<span class="kw">-</span> upper-bound lower-bound))))</code></pre>
+<p>need some blurb about this algo, hopefully find something from the asimuth</p>
+<pre class="sourceCode clojure"><code class="sourceCode clojure">(<span class="kw">defn</span><span class="fu"> random-unit-vector </span>[]
+  (<span class="kw">let</span> [asimuth (<span class="kw">*</span> (<span class="kw">rand</span>) <span class="dv">2</span> Math/PI)
+        k (<span class="kw">-</span> (<span class="kw">rand</span> <span class="dv">2</span>) <span class="dv">1</span>)
+        a (Math/sqrt (<span class="kw">-</span> <span class="dv">1</span> (<span class="kw">*</span> k k)))
+        i (<span class="kw">*</span> (Math/cos asimuth) a)
+        j (<span class="kw">*</span> (Math/sin asimuth) a)]
+    [i j k]))
+
+(<span class="kw">defn</span><span class="fu"> vector-add </span>[vector1 vector2]
+  (<span class="kw">map</span> <span class="kw">+</span> vector1 vector2))</code></pre>
+<p>need to walk between a start and end position in a random fashion</p>
+<pre class="sourceCode clojure"><code class="sourceCode clojure">(<span class="kw">defn</span><span class="fu"> random-vector-between </span>[lower upper]
+  [(random-between lower upper)
+   (random-between lower upper)
+   (random-between lower upper)])
+
+(<span class="kw">defn</span><span class="fu"> random-path </span>[position step-vector bounds]
+  (<span class="kw">cons</span> position
+        (<span class="kw">lazy-seq</span> (random-path (vector-add (vector-add position step-vector)
+                                           (random-vector-between (<span class="kw">-</span> <span class="dv">0</span> bounds) bounds))
+                               step-vector bounds))))
+
+(<span class="kw">defn</span><span class="fu"> anchor-points </span>[position min-distance max-distance]
+  (<span class="kw">let</span> [direction       (random-unit-vector)
+        distance        (random-between min-distance max-distance)
+        steps           (random-between <span class="dv">3</span> <span class="dv">15</span>)
+        step-vector     (vector-multiply-by-constant direction (<span class="kw">/</span> distance steps))
+        random-positions (<span class="kw">take</span> steps (random-path position step-vector <span class="fl">0.2</span>))
+        end-position    (vector-add position
+                                    (vector-multiply-by-constant step-vector steps))]
+    (<span class="kw">conj</span> (<span class="kw">vec</span> random-positions) end-position)))
+</code></pre>
+<p>de casteljau code ripped from pollock, needs a REWRITE and a whole bunch of explanation</p>
+<pre class="sourceCode clojure"><code class="sourceCode clojure">(<span class="kw">defn</span><span class="fu"> recur-relation </span>[t a b]
+  (<span class="kw">+</span> (<span class="kw">*</span> t b) (<span class="kw">*</span> a (<span class="kw">-</span> <span class="dv">1</span> t))))
+
+(<span class="kw">defn</span><span class="fu"> for-component </span>[t component-vals]
+  (<span class="kw">if</span> (<span class="kw">=</span> (<span class="kw">count</span> component-vals) <span class="dv">1</span>)
+    (<span class="kw">first</span> component-vals)
+    (for-component t
+      (<span class="kw">map</span> #(recur-relation t %<span class="dv">1</span> %<span class="dv">2</span>) component-vals (<span class="kw">rest</span> component-vals)))))
+
+(<span class="kw">defn</span><span class="fu"> for-t </span>[t components]
+  (<span class="kw">map</span> #(for-component t %) components))
+
+(<span class="kw">defn</span><span class="fu"> de-casteljau </span>[control-points step-amount]
+  (<span class="kw">let</span> [x-vals (<span class="kw">map</span> <span class="kw">first</span> control-points)
+        y-vals (<span class="kw">map</span> <span class="kw">second</span> control-points)
+        z-vals (<span class="kw">map</span> #(<span class="kw">nth</span> % <span class="dv">2</span>) control-points)
+        points (<span class="kw">map</span> #(for-t % [x-vals y-vals z-vals]) (<span class="kw">range</span> <span class="dv">0</span> <span class="dv">1</span> step-amount))]
+    points))
+</code></pre>
+<p>need to do stuff like adding velocity and paint distribution down path</p>
+<p>make a thing</p>
+<pre class="sourceCode clojure"><code class="sourceCode clojure">(<span class="kw">defn</span><span class="fu"> do-the-things </span>[]
+  (<span class="kw">let</span> [position (starting-point)
+        <span class="kw">path</span> (de-casteljau (anchor-points position <span class="fl">0.1</span> <span class="dv">2</span>) <span class="fl">0.01</span>)
+        velocities (<span class="kw">take</span> (<span class="kw">count</span> <span class="kw">path</span>) (<span class="kw">repeat</span> [<span class="dv">3</span> <span class="dv">0</span> <span class="dv">0</span>]))
+        masses (<span class="kw">take</span> (<span class="kw">count</span> <span class="kw">path</span>) (<span class="kw">repeat</span> <span class="dv">10</span>))
+        projected-path (<span class="kw">map</span> #(project-point %<span class="dv">1</span> %<span class="dv">2</span>) <span class="kw">path</span> velocities)
+        splatter (<span class="kw">map</span> (<span class="kw">fn</span> [[position velocity] mass]
+                        (<span class="kw">if</span> (does-impact-splatter? mass velocity)
+                          [position (splatter-vector velocity)]
+                          nil))
+                      projected-path masses)
+        projected-splatter (<span class="kw">map</span> #(<span class="kw">if</span> (<span class="kw">nil?</span> %) nil (<span class="kw">apply</span> project-point %)) splatter)]
+    {<span class="kw">:path</span> projected-path
+     <span class="kw">:splatter</span> (<span class="kw">filter</span> #(<span class="kw">not-any?</span> <span class="kw">nil?</span> %) (partition-by <span class="kw">nil?</span> projected-splatter))}))
+</code></pre>
+<p>lets draw these things</p>
+<pre class="sourceCode clojure"><code class="sourceCode clojure">(<span class="kw">def</span><span class="fu"> sketch-size</span>
+  (<span class="kw">let</span> [[width _ height] space-in-pixels]
+    [width height]))
+
+(<span class="kw">defn</span><span class="fu"> position-to-pixel </span>[[i j k]]
+  [(Math/floor (metres-to-pixels i))
+   (Math/floor (metres-to-pixels k))])
+
+(<span class="kw">defn</span><span class="fu"> map-2 </span>[f coll]
+  (<span class="kw">when-let</span> [s (<span class="kw">seq</span> coll)]
+    (<span class="kw">let</span> [s1 (<span class="kw">first</span> s)
+          s2 (<span class="kw">second</span> s)]
+      (<span class="kw">if</span> (<span class="kw">not</span> (<span class="kw">nil?</span> s2))
+        (<span class="kw">cons</span> (f (<span class="kw">first</span> s) (<span class="kw">second</span> s)) (map<span class="dv">-2</span> f (<span class="kw">rest</span> s)))))))
+
+(<span class="kw">defn</span><span class="fu"> draw-path </span>[<span class="kw">path</span>]
+  (q/begin-shape <span class="kw">:lines</span>)
+  (<span class="kw">doall</span>
+   (map<span class="dv">-2</span> (<span class="kw">fn</span> [[position1 _] [position2 _]]
+            (<span class="kw">apply</span> q/vertex (position-to-pixel position1))
+            (<span class="kw">apply</span> q/vertex (position-to-pixel position2)))
+          <span class="kw">path</span>))
+  (q/end-shape))
+
+(<span class="kw">defn</span><span class="fu"> make-shape </span>[]
+  (<span class="kw">let</span> [{projected-path <span class="kw">:path</span>
+         splatter-paths <span class="kw">:splatter</span>} (do-the-things)]
+    (.log js/console (clj-&gt;js splatter-paths))
+    (q/stroke-weight <span class="dv">10</span>)
+    (q/stroke (q/color (<span class="kw">rand-int</span> <span class="dv">256</span>) (<span class="kw">rand-int</span> <span class="dv">256</span>) (<span class="kw">rand-int</span> <span class="dv">256</span>)))
+    (draw-path projected-path)
+    (<span class="kw">doall</span> (<span class="kw">map</span> draw-path splatter-paths))))
+
+(<span class="kw">defn</span><span class="fu"> draw </span>[]
+  (q/background <span class="dv">255</span>)
+  (q/fill <span class="dv">0</span>)
+  (make-shape))
+
+(q/defsketch pollock
+  <span class="kw">:setup</span> draw
+  <span class="kw">:host</span> <span class="st">&quot;pollock&quot;</span>
+  <span class="kw">:size</span> sketch-size)
+
+(.addEventListener (.querySelector js/document <span class="st">&quot;#add&quot;</span>)
+                   <span class="st">&quot;click&quot;</span>
+                   (<span class="kw">fn</span> [<span class="kw">e</span>]
+                     (q/with-sketch (q/get-sketch-by-id <span class="st">&quot;pollock&quot;</span>)
+                       (make-shape))))</code></pre>
     </main>
     <footer>
       Written with <abbr class="heart" title="love">&#9829;</abbr> by <a href="/">Tom Booth</a>
