@@ -2,49 +2,110 @@
   (:require [quil.core :as q :include-macros true]))
 
 ;; ---
-;; title: Painting by Clojure
+;; title: Painting in Clojure
 ;; ...
 
-;; Learning Clojure by build a digital Jackson Pollock.
+;; Learning Clojure by building a digital Jackson Pollock.
 
 
-;; <canvas id="pollock"></canvas>
+;; <canvas id="pollock" style="width: 100%; border: 5px solid #eee"></canvas>
 ;; <button id="add">Add stroke</button>
 ;; <button id="fill">Fill canvas</button>
 
 
-;; Dimensions of space
+
+;; ## Setting the scene
+
+;; We want to define some facts about the space that our digital
+;; Pollock will work in. Clojure will let us define facts using one of
+;; the following value types:
+;;
+;;    - Number
+;;       + 102
+;;       + 1.5
+;;       + 1/2
+;;    - String ""
+;;    - List (...). You may notice all of the code written takes for
+;;      form of lists. By default if you have written (...) Clojure
+;;      will assume the first item is a function and the rest are
+;;      arguments to be passed in. In order for the list not to be
+;;      executed you should prefix it with a '.
+;;    - Vector [...]. A lot like a list except they are optimised for
+;;      appending to the end of the list rather than the front
+;;    - Hash Map
+;;    - Hash Set
+
+;; The most important fact about the space is its size. We will use
+;; metres to measure the size only converting to pixels when we need
+;; to draw to the screen. We are going to define size as a vector
+;; containing its width, height and depth.
 
 (def space [8   ;; width
             5   ;; height
             6]) ;; depth
 
-(def pixels-per-metre 100)
+;; We need to know the gravity of the space so it can influence the
+;; flow of paint as it leaves the brush. This will be defined as a
+;; vector that represents acceleration influenced by gravity.
 
-;; How would you convert from metres to pixels?
+(def gravity [0 -9.8 0])
 
-(defn metres-to-pixels [metres]
-  (* metres pixels-per-metre))
+;; Lastly, we need to know the normal of the surface of the canvas that
+;; the paint will impact with. This will be used to dictate how paint
+;; acts when it spatters from the impact with the canvas. (Maybe it
+;; should be used to define what the coords are that the paint has to
+;; impact with, it doesn't at the moment)
 
-;; Mainly want to be working in pixels so store the space in pixels
+(def canvas-normal [0 1 0])
 
-(def space-in-pixels (map metres-to-pixels space))
 
-;; We need to pick a place to start the stroke. It will be somewhere
-;; inside of the space
 
-(defn starting-point []
-  (let [[width height depth] space]
-    [(rand width)
-     (rand height)
-     (rand depth)]))
+
+
+
+
+;; ## Starting points and projection
+
+;; Our digital Pollock is going to start a stroke of the brush by
+;; picking a random point in space. This point will then be projected
+;; to find where it impacts with the canvas.
+
+;; In order to generate a random point inside of the space we need to
+;; define a function that each time it is called will emit a vector
+;; containing the position of the point. Function values can be
+;; created by calling `(fn [...] ...)` with the first vector being the
+;; arguments the function should receive and any follow items in the
+;; list are the body of the function and executed with the arguments
+;; bound. Rather than calling `(def name (fn ...))` Clojure has provided a
+;; shortcut function `(defn name [...] ...)`. An example of a defined
+;; function is `(defn say-hello [name] (str "Hello " name))`, this
+;; creates a function called say-hello that when called `(say-hello
+;; "James")` it will return the string "Hello James".
+
+;; We are going to cover a common functional idiom when dealing with
+;; lists to change the dimensions of the space above into a random
+;; point inside that space. To do this we want to iterate over each
+;; dimension of the size of space, generate a random number between 0
+;; and the magnitude of each dimension and then return the resultant
+;; list of random numbers as a list. To generate a random number in
+;; Clojure we can use the `(rand)` function, which will return a
+;; random number between 0 (inclusive) and 1 (exclusive). The rand
+;; function can take an optional parameter `(rand 100), this will
+;; define the bounds of the number generated to 0 and 100.
+
+;; The function map `(map [fn] [sequence])` will iterate through the
+;; sequence executing the function with the current value of the
+;; sequence as its first parameter, the values returned from the
+;; function will be stored in a list the same length as the sequence
+;; and returned by the function.
+
+;; We can now define a random point inside of space as follows
+
+(defn starting-point [] (map rand space))
 
 
 ;; To start off with lets assume that the paint is falling and has 0
 ;; velocity of its own when it starts from the brush
-
-;; We need to know gravity, measured in metres per second
-(def gravity [0 -9.8 0])
 
 
 ;; we need to know the amount of time it is going to take the paint to
@@ -111,7 +172,13 @@
      projected-velocity]))
 
 
-;; splatter
+
+
+
+
+
+;; ## Paint splatter
+
 ;; now that we know the impact velocity of a point, we know need to
 ;; work out whether that impact should splatter
 
@@ -154,8 +221,6 @@
 ;; 
 ;;  R = V - (2 * (V.N) * N)
 
-(def canvas-normal [0 1 0])
-
 ;; dot product is he sum of the multiples of the dimensions
 
 (defn dot-product [vector1 vector2]
@@ -187,7 +252,12 @@
                                  splatter-dampening-constant)))
 
 
-;; doing paths
+
+
+
+
+;; ## Paths vs Points
+
 ;; having all the code for dealing with a point is all well and good,
 ;; but we need to be dealing with paths
 
@@ -277,6 +347,13 @@
   (map (fn [[i j k]] [i (if (< j 0) 0 j) k]) path))
 
 
+
+
+
+
+
+;; ## Motion, going through the paces
+
 ;; all the points along the generated path should have an associated
 ;; velocity. To start with we can generate a linear velocity along the
 ;; path, given a randomised total time to traverse the path and the
@@ -342,13 +419,34 @@
     (take number-of-points (range initial-mass 0 step))))
 
 
+
+
+
+
+;; ## Putting it all together
+
+;; I've pulled a bunch of colours that Pollock used in his seminal
+;; work "Number 8" so that each flick of paint can be rendered in a
+;; random colour out of this pallete
+
+(def canvas-colour [142 141 93])
+
+(def paint-colours
+  [[232 51 1]
+   [248 179 10]
+   [247 239 189]
+   [29 16 8]])
+
+(defn pick-a-colour []
+  (nth paint-colours (rand-int (count paint-colours))))
+
 ;; now we need to assemble all of the above functions into something
 ;; that will work out everything
 
-(defn do-the-things []
+(defn fling-paint []
   (let [position       (starting-point)
         total-time     (random-between 1 5)
-        path           (ensure-above-canvas (de-casteljau (anchor-points position 0.1 2 3 15 0.4) 0.005))
+        path           (ensure-above-canvas (de-casteljau (anchor-points position 0.1 2 3 15 0.4) 0.01))
         velocities     (path-velocities path total-time)
         masses         (path-masses path (random-between 5 30))
         projected-path (map #(project-point %1 %2) path velocities)
@@ -362,21 +460,71 @@
                                     nil
                                     (conj (vec (project-point position velocity)) mass)))
                                 splatter)]
-    {:air path
-     :path (map #(conj %1 %2) projected-path masses)
+    {:colour (pick-a-colour)
+     :air-path path
+     :canvas-path (map #(conj %1 %2) projected-path masses)
      :splatter (filter #(not-any? nil? %) (partition-by nil? projected-splatter))}))
 
 
-;; lets draw these things
+
+
+
+
+;; ## Rendering the canvas
+
+;; We need to know the available size for the outputted image to fit
+;; in. To work this out we are going to have to interface with
+;; JavaScript directly. Luckily ClojureScript makes this very easy
+;; using the js namespace.
+
+(def image-width (.-clientWidth (.querySelector js/document "#pollock")))
+
+;; Now we have the width of the image we can use the dimensions of the
+;; space to work out the pixel size of the image and how to convert
+;; between metres and pixels.
+
+(def pixels-in-a-metre
+  (let [[width _ _] space]
+    (/ image-width width)))
+
+(defn metres-to-pixels [metres]
+  (Math/floor (* metres pixels-in-a-metre)))
+
+;; We can now use this function to work out the size the sketch should
+;; be and how to convert a position in metres over to a position to be
+;; drawn in the image.
 
 (def sketch-size
-  (let [[width _ height] space-in-pixels]
-    [width height]))
+  (let [[width _ height] space]
+    [(metres-to-pixels width)
+     (metres-to-pixels height)]))
 
 (defn position-to-pixel [[i j k]]
-  [(Math/floor (metres-to-pixels i))
-   (Math/floor (metres-to-pixels k))])
+  [(metres-to-pixels i)
+   (metres-to-pixels k)])
 
+
+;; Now the dimensions of the image our calculated we can use Quil to
+;; define the sketch that we will draw into. We also need to define a
+;; function that will initialise the image into the state we want it.
+;; This function will be run when the sketch is defined.
+
+(defn setup-image []
+  (apply q/background canvas-colour)
+  (q/fill 0))
+
+(q/defsketch pollock
+  :setup setup-image
+  :host "pollock"     ;; the id of the <canvas> element
+  :size sketch-size)
+
+;; To draw the trails of paint across the canvas we need draw a path
+;; following the defined positions, which takes into account the
+;; amount of paint at each position and uses this to set with width of
+;; the path. In order to do this cleanly in Quil we need to consider
+;; the path as pairs of positions that we shall draw paths between
+;; using the initial paint amount as the stroke-weight. This allows
+;; for a smooth decrease in the width of the path.
 
 (defn draw-path [path]
   (doall
@@ -385,32 +533,32 @@
             (apply q/line (concat (position-to-pixel position1) (position-to-pixel position2))))
           path)))
 
+;; For splatter we are just going to draw a point that has a stroke-weight
+;; proportional to the amount of paint.
+
 (defn draw-splats [path]
   (doall (map (fn [[position _ mass]]
                 (q/stroke-weight mass)
                 (apply q/point (position-to-pixel position)))
               path)))
 
-(defn make-shape [& any]
+;; Now that we can render the result of flinging some paint around we
+;; need a function that will fling the paint and render the result.
+
+(defn fling-and-render [& any]
   (q/with-sketch (q/get-sketch-by-id "pollock")
-    (let [{:keys [path splatter] :as path-hash} (do-the-things)]
-      (.log js/console (clj->js path-hash))
-      (q/stroke (q/color (rand-int 256) (rand-int 256) (rand-int 256)))
-      (draw-path path)
+    (let [{:keys [colour canvas-path splatter]} (fling-paint)]
+      (q/stroke (apply q/color colour))
+      (draw-path canvas-path)
       (doall (map draw-splats splatter)))))
 
-(defn draw []
-  (q/background 255)
-  (q/fill 0))
 
-(q/defsketch pollock
-  :setup draw
-  :host "pollock"
-  :size sketch-size)
+;; Lastly, we shall attach to the buttons and cause our image to come
+;; to life.
 
 (.addEventListener (.querySelector js/document "#add")
                    "click"
-                   make-shape)
+                   fling-and-render)
 
 (def interval-ref (atom nil))
 (def fill-count (atom 0))
@@ -421,5 +569,5 @@
                              (js/setInterval (fn []
                                                (if (> @fill-count 500)
                                                  (js/clearInterval @interval-ref)
-                                                 (do (make-shape) (swap! fill-count inc)))) 100))))
+                                                 (do (fling-and-render) (swap! fill-count inc)))) 100))))
 
