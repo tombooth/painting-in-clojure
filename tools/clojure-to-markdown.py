@@ -18,7 +18,7 @@ def main():
             if state == SEXP:
                 sys.stdout.write('```\n\n\n')
 
-            sys.stdout.write(line[3:])
+            sys.stdout.write(line[3:] if len(line) > 3 else '\n')
             state = COMMENT
         elif line[0] == '(':
             if state != PRELUDE:
