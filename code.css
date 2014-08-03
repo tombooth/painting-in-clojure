@@ -1,4 +1,12 @@
+pre.sourceCode {
+  padding: 12px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  background-color: #f8f8f8;
+}
+
 code > span.kw { color: #007020; font-weight: bold; }
+code > a.kw { color: #007020; font-weight: bold; }
 code > span.dt { color: #902000; }
 code > span.dv { color: #40a070; }
 code > span.bn { color: #40a070; }
