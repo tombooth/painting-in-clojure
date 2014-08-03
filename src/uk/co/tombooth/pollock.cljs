@@ -104,26 +104,37 @@
 (defn starting-point [] (map rand space))
 
 
-;; To start off with lets assume that the paint is falling and has 0
-;; velocity of its own when it starts from the brush
+;; Now that we can generate a random point in space we want to project
+;; this to the canvas. We are going to use [Newtonian equations of
+;; motion](http://wiki), we know the position, velocity and acceleration of the
+;; point and we want to know what the position and velocity are when y
+;; is 0. In order to work out final positions we need to know the
+;; total time the point spent falling, we can do this using the y
+;; position as we know that the final position should be 0.
 
-
-;; we need to know the amount of time it is going to take the paint to
-;; fall, which we can work out based on the y dimension alone
-
-;; we know the initial position and velocity, final position and
-;; acceleration and we need to find the time. We cant use the equation
-;; r = r0 + v0 * t + at^2/2
-;; we need to use the quadratic equation to solve for t
+;; To work out the time it takes for the point to reach the canvas we
+;; will solve the following equation for t:
 ;;
-;; rearranged we get
-;;   at^2 + 2v0t + 2r0 - 2r = 0
-;; in quad equation:
-;;   a = a
-;;   b = 2v0
-;;   c = 2r0 - 2r
-;;     r (final position) is always going to be 0 so,
-;;   c = 2r0
+;;    - $r$  = final displacement,
+;;    - $r0$ = initial displacement,
+;;    - $v0$ = initial velocity,
+;;    - $a$  = acceleration,
+;;    - $t$  = time.
+;;
+;; $r = r0 + v0 * t + \frac{at^2}{2}$
+;;
+;; This rearranges to:
+;;
+;; $at^2 + 2v0t + 2r0 - 2r = 0$
+;;
+;; We can solve this using the Quadratic Equation, but this will yield
+;; us two results. In general we can say that we are interested in the
+;; result with the maxium value.
+;;
+;; In this function you can see an example of call out to Java.
+;; Clojure doesn't have an inbuilt sqrt function so we are calling out
+;; to the java version. A function named in the form `foo/bar` means
+;; it will call the function `bar` in the namespace `foo`. **WHAT IS A NAMESPACE?**
 
 (defn time-to-canvas [position velocity acceleration]
   (let [a acceleration
@@ -135,23 +146,28 @@
         minus-sqrt (/ (- minus-b (Math/sqrt discriminant)) (* 2 a))]
     (max add-sqrt minus-sqrt)))
 
-;; now we can get the time we need to be able to derive the final
-;; velocity and position of any dimension
-
-;; v = at + v0
-(defn velocity-at [time initial-velocity acceleration]
-  (+ (* acceleration time) initial-velocity))
-
-;; for position we can use the same equation we used to derive the
-;; time
+;; We can calculate the time but we want the final position and
+;; velocity. For position we can use the same function that we
+;; rearranged above to derive the time.
 
 (defn position-at [time initial-position initial-velocity acceleration]
   (+ initial-position
      (* initial-velocity time)
      (/ (* acceleration time time) 2)))
 
-;; we can now link these up into a function to get the final position
-;; and velocity for a point
+;; For velocity we can use another equation of motion:
+;;
+;; $v = at + v0$
+
+(defn velocity-at [time initial-velocity acceleration]
+  (+ (* acceleration time) initial-velocity))
+
+
+;; These functions we just implemented can be joined up to get given
+;; an initial position and velocity and return the final position and
+;; velocity. This function doesn't explicitly ask for the acceleration
+;; on the paint, it assumes only gravity is acting on it and uses the
+;; constant defined earlier on.
 
 (defn project-point [position velocity]
   (let [[i j k]            position
@@ -179,30 +195,45 @@
 
 ;; ## Paint splatter
 
-;; now that we know the impact velocity of a point, we know need to
-;; work out whether that impact should splatter
+;; An important aspect of Pollocks painting is the splatter of the
+;; paint hitting the canvas and what this adds to the images. We are
+;; going to add a simple splatter model based of the velocity at
+;; impact we calculated in the last part.
 
-;; we need to work out the impact force as a scalar so that we can
-;; define a cut off
+;; Not all paint that hits the canvas will splatter, so we need to
+;; work out the impact force of the paint and use this as a cutoff for
+;; whether the paint should splatter.
 
-;; this will require working out the absolute value of a vector. We do
-;; this by summing up the squares of the dimensions and then taking th root
+;; In order to work out this value as a scalar we will need to be able
+;; to calculate the absolute value of a vector. This can be done by
+;; summing the squares of the dimensions **is it dimensions and not
+;; some other lingo** and then take the square root of that summation.
+
+;; This function will introduce a shorthand for defining functions
+;; that is very useful in combination with functions like `map` and
+;; `reduce`. Rather than writing `(fn [args...] body)` you can use
+;; `#(body)` and if you want access to the arguments use `%n` where
+;; `n` is the position of the argument. If you are only expecting one
+;; argument then you can use just `%` on its own.
 
 (defn vector-absolute [vector]
   (Math/sqrt (reduce + (map #(* % %) vector))))
 
-;; need something about why it is ok this is velocity and not
+;; **need something about why it is ok this is velocity and not
 ;; acceleration, maybe because it is the relative acceleration of the
 ;; imapct of the two objects (paint has velocity, cavnas doesn't so
-;; accel = velocity?)
+;; accel = velocity?)**
 
 (defn impact-force [mass velocity]
   (* (vector-absolute velocity) mass))
 
-;; we need to work out if an impact should splatter off some of its
-;; paint. This should include some randomess as it is likely a
-;; consecutive points will all splatter and including some randomness
-;; will make it look at little less 'generated'
+;; Based of this function to calculate the impact force we can define
+;; a predicate that will tell us whether paint should splatter based
+;; off its mass and velocity. It is idiomatic in Clojure to end
+;; predicates with a `?`. We are going to add some randomness to this
+;; function so that we don't necessarily just get a uniform line of
+;; points. Also defined is a minimum force for us to consider whether
+;; some paint could splatter.
 
 (def min-impact-force-for-splatter 50)
 
@@ -210,18 +241,24 @@
   (and (> (impact-force mass velocity) min-impact-force-for-splatter)
        (> (rand) 0.8)))
 
-;; if an impact splatters then we will need to bounce its velocity
-;; vector as this is the direction it will exit its current position
+;; If an impact splatters then we will need to bounce its velocity
+;; vector as this is the direction it will leave its current position.
 
-;; the equation to bounce a vector, V, off a plane with normal, N, is:
-;; needs rewriting http://mathworld.wolfram.com/Reflection.html
+;; The equation to bounce a vector, $V$, off a plane with normal, $N$, is:
+;; **needs rewriting http://mathworld.wolfram.com/Reflection.html**
 ;; 
-;;  N is the normal vector of the plane
-;;  R is the reflected vector
+;;    - $N$ is the normal vector of the plane
+;;    - $V$ = the incoming vector
+;;    - $B$ is the outgoing, bounced, vector
 ;; 
-;;  R = V - (2 * (V.N) * N)
+;;  $B = V - (2 * (V.N) * N)$
 
-;; dot product is he sum of the multiples of the dimensions
+;; We are missing a few of the required vector operations used in this
+;; equation so we should define some more functions before trying to
+;; implement it. The first is the vector dot product, this is defined
+;; as the sum of the multiples of each dimension. Otherwise we need
+;; substraction of two vectors and a function to multiply a vector by
+;; a constant.
 
 (defn dot-product [vector1 vector2]
   (reduce + (map * vector1 vector2)))
@@ -233,16 +270,24 @@
   (map #(* % constant) vector))
 
 
-;; blah? need a better name for this variable
+;; Using the above functions we can now implement the vector bouncing
+;; equation. I have pulled $(2 * (V.N) * N)$ out into a variable
+;; called extreme for clarity. **I don't think extreme is a much
+;; better name than blah**
 
 (defn bounce-vector [vector normal]
   (let [vector-dot-normal (dot-product vector normal)
-        blah (vector-multiply-by-constant normal (* 2 vector-dot-normal))]
-    (vector-subtraction vector blah)))
+        extreme (vector-multiply-by-constant normal (* 2 vector-dot-normal))]
+    (vector-subtraction vector extreme)))
 
 
-;; splatter will never take all of the paint and velocity with it so
-;; we need a dampening constant
+;; When an impact splatters it will only take a fraction of the
+;; velocity, otherwise know as being elastic rather than inelastic
+;; **check these definitions**. We can define a constant that will be
+;; used to reduce the total velocity of the bounced vector to reflect
+;; this elasticity.
+
+;; **should this splatter vector be randomised a little bit?**
 
 (def splatter-dampening-constant 0.7)
 
