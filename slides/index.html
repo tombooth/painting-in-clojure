@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <title></title>
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel="stylesheet" href="revealjs/css/reveal.min.css"/>
+  <style type="text/css">code{white-space: pre;}</style>
+  <link rel="stylesheet" href="/assets/css/bundle.css"/>
+  <link rel="stylesheet" href="/assets/css/theme.css"/>
+
+    <!-- If the query includes 'print-pdf', include the PDF print sheet -->
+    <script>
+      if( window.location.search.match( /print-pdf/gi ) ) {
+        var link = document.createElement( 'link' );
+        link.rel = 'stylesheet';
+        link.type = 'text/css';
+        link.href = 'revealjs/css/print/pdf.css';
+        document.getElementsByTagName( 'head' )[0].appendChild( link );
+      }
+    </script>
+    <!--[if lt IE 9]>
+    <script src="revealjs/lib/js/html5shiv.js"></script>
+    <![endif]-->
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+<section><section id="painting-in-clojure" class="titleslide slide level1"><h1>Painting in Clojure</h1></section><section id="jackson-pollock" class="slide level2">
+<h1>Jackson Pollock</h1>
+<figure>
+<img src="img/number-8.jpg" alt="Jackson Pollock: Number 8" /><figcaption>Jackson Pollock: Number 8</figcaption>
+</figure>
+<aside class="notes">
+Famous 20th century abstract painter
+</aside>
+</section><section id="defining-our-space---i" class="slide level2">
+<h1>Defining our space - I</h1>
+<figure>
+<img src="img/facts.jpg" />
+</figure>
+<aside class="notes">
+Some notes
+</aside>
+</section><section id="defining-our-space---ii" class="slide level2">
+<h1>Defining our space - II</h1>
+<pre class="sourceCode clojure"><code class="sourceCode clojure">(<span class="kw">def</span><span class="fu"> space </span>[<span class="dv">8</span>   <span class="co">;; width</span>
+            <span class="dv">5</span>   <span class="co">;; height</span>
+            <span class="dv">6</span>]) <span class="co">;; depth</span>
+
+(<span class="kw">def</span><span class="fu"> gravity </span>[<span class="dv">0</span> -<span class="fl">9.8</span> <span class="dv">0</span>])
+
+(<span class="kw">def</span><span class="fu"> canvas-normal </span>[<span class="dv">0</span> <span class="dv">1</span> <span class="dv">0</span>])</code></pre>
+</section><section id="picking-a-starting-point" class="slide level2">
+<h1>Picking a starting point</h1>
+<p>A gesture has to start somewhere inside of our defined space.</p>
+<pre class="sourceCode clojure"><code class="sourceCode clojure">(<span class="kw">defn</span><span class="fu"> starting-point </span>[] (<span class="kw">map</span> <span class="kw">rand</span> space))</code></pre>
+<aside class="notes">
+Some notes
+</aside>
+</section><section id="projection" class="slide level2">
+<h1>Projection</h1>
+<p>Drawing + code</p>
+<aside class="notes">
+Some notes
+</aside>
+</section><section id="splatter" class="slide level2">
+<h1>Splatter</h1>
+<p>Drawing + code</p>
+<aside class="notes">
+Some notes
+</aside>
+</section><section id="paths" class="slide level2">
+<h1>Paths</h1>
+<p>Drawing + code</p>
+<aside class="notes">
+Some notes
+</aside>
+</section><section id="a-sense-of-motion" class="slide level2">
+<h1>A sense of motion</h1>
+<p>Drawing + code</p>
+<aside class="notes">
+Some notes
+</aside>
+</section><section id="pull-it-all-together" class="slide level2">
+<h1>Pull it all together</h1>
+<canvas id="pollock" style="width:80%"></canvas>
+<br/>
+<button id="add">
+Add a stroke
+</button>
+<button id="fill">
+Fill canvas
+</button>
+
+
+
+</section></section>
+    </div>
+  </div>
+  <script src="revealjs/lib/js/head.min.js"></script>
+  <script src="revealjs/js/reveal.min.js"></script>
+  <script>
+
+      // Full list of configuration options available here:
+      // https://github.com/hakimel/reveal.js#configuration
+      Reveal.initialize({
+        controls: false,
+        progress: true,
+        history: true,
+        //center: true,
+        transition: 'none',
+
+        // Optional libraries used to extend on reveal.js
+        dependencies: [
+          { src: 'revealjs/plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } },
+          { src: 'revealjs/plugin/math/math.js', async: true }
+        ]});
+    </script>
+    <script src="../js/processing-1.4.8.js"></script>
+    <script src="../js/main.js"></script>
+  </body>
+</html>
