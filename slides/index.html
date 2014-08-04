@@ -29,7 +29,13 @@
 <body>
   <div class="reveal">
     <div class="slides">
-<section><section id="painting-in-clojure" class="titleslide slide level1"><h1>Painting in Clojure</h1></section><section id="jackson-pollock" class="slide level2">
+<section id="painting-in-clojure" class="slide level1">
+<h1>Painting in Clojure</h1>
+<div style="font-size:2em">
+by <span class="citation" data-cites="tombooth">@tombooth</span>
+</div>
+</section>
+<section id="jackson-pollock" class="slide level1">
 <h1>Jackson Pollock</h1>
 <figure>
 <img src="img/number-8.jpg" alt="Jackson Pollock: Number 8" /><figcaption>Jackson Pollock: Number 8</figcaption>
@@ -37,7 +43,8 @@
 <aside class="notes">
 Famous 20th century abstract painter
 </aside>
-</section><section id="defining-our-space---i" class="slide level2">
+</section>
+<section id="defining-our-space---i" class="slide level1">
 <h1>Defining our space - I</h1>
 <figure>
 <img src="img/facts.jpg" />
@@ -45,7 +52,8 @@ Famous 20th century abstract painter
 <aside class="notes">
 Some notes
 </aside>
-</section><section id="defining-our-space---ii" class="slide level2">
+</section>
+<section id="defining-our-space---ii" class="slide level1">
 <h1>Defining our space - II</h1>
 <pre class="sourceCode clojure"><code class="sourceCode clojure">(<span class="kw">def</span><span class="fu"> space </span>[<span class="dv">8</span>   <span class="co">;; width</span>
             <span class="dv">5</span>   <span class="co">;; height</span>
@@ -54,38 +62,201 @@ Some notes
 (<span class="kw">def</span><span class="fu"> gravity </span>[<span class="dv">0</span> -<span class="fl">9.8</span> <span class="dv">0</span>])
 
 (<span class="kw">def</span><span class="fu"> canvas-normal </span>[<span class="dv">0</span> <span class="dv">1</span> <span class="dv">0</span>])</code></pre>
-</section><section id="picking-a-starting-point" class="slide level2">
+</section>
+<section id="picking-a-starting-point" class="slide level1">
 <h1>Picking a starting point</h1>
 <p>A gesture has to start somewhere inside of our defined space.</p>
-<pre class="sourceCode clojure"><code class="sourceCode clojure">(<span class="kw">defn</span><span class="fu"> starting-point </span>[] (<span class="kw">map</span> <span class="kw">rand</span> space))</code></pre>
+<figure>
+<img src="img/starting-point.jpg" />
+</figure>
+<pre class="sourceCode clojure"><code class="sourceCode clojure">(<span class="kw">defn</span><span class="fu"> starting-point </span>[]
+  (<span class="kw">map</span> <span class="kw">rand</span> space))</code></pre>
 <aside class="notes">
 Some notes
 </aside>
-</section><section id="projection" class="slide level2">
-<h1>Projection</h1>
-<p>Drawing + code</p>
+</section>
+<section id="projection---i" class="slide level1">
+<h1>Projection - I</h1>
+<figure>
+<img src="img/projection.jpg" />
+</figure>
 <aside class="notes">
 Some notes
 </aside>
-</section><section id="splatter" class="slide level2">
-<h1>Splatter</h1>
-<p>Drawing + code</p>
+</section>
+<section id="projection---ii" class="slide level1">
+<h1>Projection - II</h1>
+<pre class="sourceCode clojure"><code class="sourceCode clojure">(<span class="kw">defn</span><span class="fu"> time-to-canvas </span>[position velocity acceleration]
+  (<span class="kw">let</span> [a acceleration
+        b (<span class="kw">*</span> <span class="dv">2</span> velocity)
+        c (<span class="kw">*</span> <span class="dv">2</span> position)
+        discriminant (<span class="kw">-</span> (<span class="kw">*</span> b b) (<span class="kw">*</span> <span class="dv">4</span> a c))
+        minus-b (<span class="kw">-</span> <span class="dv">0</span> b)
+        add-sqrt (<span class="kw">/</span> (<span class="kw">+</span> minus-b (Math/sqrt discriminant)) (<span class="kw">*</span> <span class="dv">2</span> a))
+        minus-sqrt (<span class="kw">/</span> (<span class="kw">-</span> minus-b (Math/sqrt discriminant)) (<span class="kw">*</span> <span class="dv">2</span> a))]
+    (<span class="kw">max</span> add-sqrt minus-sqrt)))</code></pre>
+</section>
+<section id="projection---iii" class="slide level1">
+<h1>Projection - III</h1>
+<pre class="sourceCode clojure"><code class="sourceCode clojure">(<span class="kw">defn</span><span class="fu"> position-at </span>[<span class="kw">time</span> initial-position initial-velocity acceleration]
+  (<span class="kw">+</span> initial-position
+     (<span class="kw">*</span> initial-velocity <span class="kw">time</span>)
+     (<span class="kw">/</span> (<span class="kw">*</span> acceleration <span class="kw">time</span> <span class="kw">time</span>) <span class="dv">2</span>)))
+
+(<span class="kw">defn</span><span class="fu"> velocity-at </span>[<span class="kw">time</span> initial-velocity acceleration]
+  (<span class="kw">+</span> (<span class="kw">*</span> acceleration <span class="kw">time</span>) initial-velocity))
+
+(<span class="kw">defn</span><span class="fu"> project-point </span>[position velocity]
+  (<span class="kw">let</span> [[i j k]            position
+        [vi vj vk]         velocity
+        [ai aj ak]         gravity
+        <span class="kw">time</span>               (time-to-canvas j vj aj)
+        projected-position [(position-at <span class="kw">time</span> i vi ai)
+                            <span class="dv">0</span>
+                            (position-at <span class="kw">time</span> k vk ak)]
+        projected-velocity [(velocity-at <span class="kw">time</span> vi ai)
+                            (velocity-at <span class="kw">time</span> vj aj)
+                            (velocity-at <span class="kw">time</span> vk ak)]]
+    [projected-position
+     projected-velocity]))</code></pre>
+<aside class="notes">
+<span class="math"><em>v</em> = <em>a</em><em>t</em> + <em>v</em>0</span>
+</aside>
+</section>
+<section id="splatter---i" class="slide level1">
+<h1>Splatter - I</h1>
+<figure>
+<img src="img/impact.jpg" />
+</figure>
+<aside class="notes">
+Impact force derived from work-energy principle: W=E_k=12mv_2<sup>2-12mv_1</sup>2,
+</aside>
+</section>
+<section id="splatter---ii" class="slide level1">
+<h1>Splatter - II</h1>
+<pre class="sourceCode clojure"><code class="sourceCode clojure">(<span class="kw">defn</span><span class="fu"> dot-product </span>[vector1 vector2]
+  (<span class="kw">reduce</span> <span class="kw">+</span> (<span class="kw">map</span> <span class="kw">*</span> vector1 vector2)))
+
+(<span class="kw">defn</span><span class="fu"> vector-subtraction </span>[vector1 vector2]
+  (<span class="kw">map</span> <span class="kw">-</span> vector1 vector2))
+
+(<span class="kw">defn</span><span class="fu"> vector-multiply-by-constant </span>[<span class="kw">vector</span> constant]
+  (<span class="kw">map</span> #(<span class="kw">*</span> % constant) <span class="kw">vector</span>))
+
+(<span class="kw">defn</span><span class="fu"> bounce-vector </span>[<span class="kw">vector</span> normal]
+  (<span class="kw">let</span> [vector-dot-normal (dot-product <span class="kw">vector</span> normal)
+        extreme (vector-multiply-by-constant normal (<span class="kw">*</span> <span class="dv">2</span> vector-dot-normal))]
+    (vector-subtraction <span class="kw">vector</span> extreme)))</code></pre>
 <aside class="notes">
 Some notes
 </aside>
-</section><section id="paths" class="slide level2">
-<h1>Paths</h1>
-<p>Drawing + code</p>
+</section>
+<section id="paths---i" class="slide level1">
+<h1>Paths - I</h1>
+<figure>
+<img src="img/bezier.jpg" />
+</figure>
 <aside class="notes">
 Some notes
 </aside>
-</section><section id="a-sense-of-motion" class="slide level2">
-<h1>A sense of motion</h1>
-<p>Drawing + code</p>
+</section>
+<section id="paths---ii" class="slide level1">
+<h1>Paths - II</h1>
+<pre class="sourceCode clojure"><code class="sourceCode clojure">(<span class="kw">defn</span><span class="fu"> random-unit-vector </span>[]
+  (<span class="kw">let</span> [asimuth (<span class="kw">*</span> (<span class="kw">rand</span>) <span class="dv">2</span> Math/PI)
+        k (<span class="kw">-</span> (<span class="kw">rand</span> <span class="dv">2</span>) <span class="dv">1</span>)
+        a (Math/sqrt (<span class="kw">-</span> <span class="dv">1</span> (<span class="kw">*</span> k k)))
+        i (<span class="kw">*</span> (Math/cos asimuth) a)
+        j (<span class="kw">*</span> (Math/sin asimuth) a)]
+    [i j k]))
+
+(<span class="kw">defn</span><span class="fu"> random-path </span>[position step-vector bounds]
+  (<span class="kw">cons</span> position
+        (<span class="kw">lazy-seq</span> (random-path (vector-add (vector-add position step-vector)
+                                           (random-vector-between (<span class="kw">-</span> <span class="dv">0</span> bounds) bounds))
+                               step-vector bounds))))
+
+(<span class="kw">defn</span><span class="fu"> anchor-points </span>[position min-distance max-distance min-steps max-steps variation]
+  (<span class="kw">let</span> [direction        (random-unit-vector)
+        distance         (random-between min-distance max-distance)
+        steps            (random-between min-steps max-steps)
+        step-vector      (vector-multiply-by-constant direction (<span class="kw">/</span> distance steps))
+        random-positions (<span class="kw">take</span> steps (random-path position step-vector variation))
+        end-position     (vector-add position
+                                     (vector-multiply-by-constant step-vector steps))]
+    (<span class="kw">conj</span> (<span class="kw">vec</span> random-positions) end-position)))</code></pre>
 <aside class="notes">
 Some notes
 </aside>
-</section><section id="pull-it-all-together" class="slide level2">
+</section>
+<section id="paths---iii" class="slide level1">
+<h1>Paths - III</h1>
+<figure>
+<img src="img/de-casteljau.jpg" />
+</figure>
+<aside class="notes">
+Some notes
+</aside>
+</section>
+<section id="paths---iv" class="slide level1">
+<h1>Paths - IV</h1>
+<pre class="sourceCode clojure"><code class="sourceCode clojure">(<span class="kw">defn</span><span class="fu"> recur-relation </span>[t a b]
+  (<span class="kw">+</span> (<span class="kw">*</span> t b) (<span class="kw">*</span> a (<span class="kw">-</span> <span class="dv">1</span> t))))
+
+(<span class="kw">defn</span><span class="fu"> for-component </span>[t component-vals]
+  (<span class="kw">if</span> (<span class="kw">=</span> (<span class="kw">count</span> component-vals) <span class="dv">1</span>)
+    (<span class="kw">first</span> component-vals)
+    (for-component t
+      (<span class="kw">map</span> #(recur-relation t %<span class="dv">1</span> %<span class="dv">2</span>) component-vals (<span class="kw">rest</span> component-vals)))))
+
+(<span class="kw">defn</span><span class="fu"> for-t </span>[t components]
+  (<span class="kw">map</span> #(for-component t %) components))
+
+(<span class="kw">defn</span><span class="fu"> de-casteljau </span>[control-points step-amount]
+  (<span class="kw">let</span> [x-vals (<span class="kw">map</span> <span class="kw">first</span> control-points)
+        y-vals (<span class="kw">map</span> <span class="kw">second</span> control-points)
+        z-vals (<span class="kw">map</span> #(<span class="kw">nth</span> % <span class="dv">2</span>) control-points)
+        points (<span class="kw">map</span> #(for-t % [x-vals y-vals z-vals]) (<span class="kw">range</span> <span class="dv">0</span> <span class="dv">1</span> step-amount))]
+    points))</code></pre>
+<aside class="notes">
+Some notes
+</aside>
+</section>
+<section id="a-sense-of-motion---i" class="slide level1">
+<h1>A sense of motion - I</h1>
+<figure>
+<img src="img/motion.jpg" />
+</figure>
+<aside class="notes">
+Some notes
+</aside>
+</section>
+<section id="a-sense-of-motion---ii" class="slide level1">
+<h1>A sense of motion - II</h1>
+<pre class="sourceCode clojure"><code class="sourceCode clojure">(<span class="kw">defn</span><span class="fu"> velocity-between </span>[point1 point2 total-time total-distance]
+  (<span class="kw">let</span> [difference-vector (vector-subtraction point1 point2)
+        time-between (<span class="kw">*</span> total-time (<span class="kw">/</span> (distance-between-points point1 point2)
+                                      total-distance))]
+    (vector-divide-by-const difference-vector time-between)))
+
+(<span class="kw">defn</span><span class="fu"> path-velocities </span>[<span class="kw">path</span> total-time]
+  (<span class="kw">let</span> [total-distance   (path-length <span class="kw">path</span>)
+        number-of-points (<span class="kw">count</span> <span class="kw">path</span>)]
+    (<span class="kw">conj</span> (<span class="kw">vec</span> (map<span class="dv">-2</span> #(velocity-between %<span class="dv">1</span> %<span class="dv">2</span>
+                                         total-time
+                                         total-distance)
+                      <span class="kw">path</span>))
+          [<span class="dv">0</span> <span class="dv">0</span> <span class="dv">0</span>])))
+
+(<span class="kw">defn</span><span class="fu"> path-masses </span>[<span class="kw">path</span> initial-mass]
+  (<span class="kw">let</span> [number-of-points (<span class="kw">count</span> <span class="kw">path</span>)
+        step (<span class="kw">-</span> <span class="dv">0</span> (<span class="kw">/</span> initial-mass number-of-points))]
+    (<span class="kw">take</span> number-of-points (<span class="kw">range</span> initial-mass <span class="dv">0</span> step))))</code></pre>
+<aside class="notes">
+Some notes
+</aside>
+</section>
+<section id="pull-it-all-together" class="slide level1">
 <h1>Pull it all together</h1>
 <canvas id="pollock" style="width:80%"></canvas>
 <br/>
@@ -98,7 +269,7 @@ Fill canvas
 
 
 
-</section></section>
+</section>
     </div>
   </div>
   <script src="revealjs/lib/js/head.min.js"></script>
