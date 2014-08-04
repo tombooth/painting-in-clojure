@@ -24,6 +24,7 @@ body {
 	padding: 0;
 	float: none !important;
 	overflow: visible;
+	zoom: 0.8 !important;
 }
 
 html {

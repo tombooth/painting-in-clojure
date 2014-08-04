@@ -162,15 +162,7 @@ Some notes
 </section>
 <section id="paths---ii" class="slide level1">
 <h1>Paths - II</h1>
-<pre class="sourceCode clojure"><code class="sourceCode clojure">(<span class="kw">defn</span><span class="fu"> random-unit-vector </span>[]
-  (<span class="kw">let</span> [asimuth (<span class="kw">*</span> (<span class="kw">rand</span>) <span class="dv">2</span> Math/PI)
-        k (<span class="kw">-</span> (<span class="kw">rand</span> <span class="dv">2</span>) <span class="dv">1</span>)
-        a (Math/sqrt (<span class="kw">-</span> <span class="dv">1</span> (<span class="kw">*</span> k k)))
-        i (<span class="kw">*</span> (Math/cos asimuth) a)
-        j (<span class="kw">*</span> (Math/sin asimuth) a)]
-    [i j k]))
-
-(<span class="kw">defn</span><span class="fu"> random-path </span>[position step-vector bounds]
+<pre class="sourceCode clojure"><code class="sourceCode clojure">(<span class="kw">defn</span><span class="fu"> random-path </span>[position step-vector bounds]
   (<span class="kw">cons</span> position
         (<span class="kw">lazy-seq</span> (random-path (vector-add (vector-add position step-vector)
                                            (random-vector-between (<span class="kw">-</span> <span class="dv">0</span> bounds) bounds))
