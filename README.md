@@ -1,4 +1,4 @@
-# Painting by Clojure
+# Painting in Clojure
 
 Learn clojure by building a digital Jackson Pollock
 
