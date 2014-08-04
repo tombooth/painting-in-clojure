@@ -140,14 +140,6 @@ Some notes
 # Paths - II
 
 ```{.clojure}
-(defn random-unit-vector []
-  (let [asimuth (* (rand) 2 Math/PI)
-        k (- (rand 2) 1)
-        a (Math/sqrt (- 1 (* k k)))
-        i (* (Math/cos asimuth) a)
-        j (* (Math/sin asimuth) a)]
-    [i j k]))
-
 (defn random-path [position step-vector bounds]
   (cons position
         (lazy-seq (random-path (vector-add (vector-add position step-vector)
