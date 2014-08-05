@@ -16,6 +16,10 @@
       <h1>Painting in Clojure<small>by <a href="/">Tom Booth</a></small></h1>
     </header>
     <main>
+<h1 style="background-color:red;color:white;">
+DRAFT ARTICLE
+</h1>
+
 <p>Learning Clojure by building a digital Jackson Pollock.</p>
 <canvas id="pollock" style="width: 100%; border: 5px solid #eee"></canvas>
 <button id="add">
@@ -77,7 +81,7 @@ Fill canvas
 <p>This rearranges to:</p>
 <p><span class="math">\(at^2 + 2v0t + 2r0 - 2r = 0\)</span></p>
 <p>We can solve this using the Quadratic Equation, but this will yield us two results. In general we can say that we are interested in the result with the maxium value.</p>
-<p>In this function you can see an example of call out to Java. Clojure doesn't have an inbuilt sqrt function so we are calling out to the java version. A function named in the form <code>foo/bar</code> means it will call the function <code>bar</code> in the namespace <code>foo</code>. <strong>WHAT IS A NAMESPACE?</strong></p>
+<p>In this function you can see an example of call out to Java. Clojure doesn't have an inbuilt sqrt function so we are calling out to the java version. A function named in the form <code>foo/bar</code> means it will call the function <code>bar</code> in the namespace <code>foo</code>. <strong>NEED TO WRITE: WHAT IS A NAMESPACE?</strong></p>
 <pre class="sourceCode clojure"><code class="sourceCode clojure">(<a href="http://clojuredocs.org/clojure_core/clojure.core/defn" target="_blank" class="kw">defn</a><span class="fu"> time-to-canvas </span>[position velocity acceleration]
   (<a href="http://clojuredocs.org/clojure_core/clojure.core/let" target="_blank" class="kw">let</a> [a acceleration
         b (<a href="http://clojuredocs.org/clojure_core/clojure.core/*" target="_blank" class="kw">*</a> <span class="dv">2</span> velocity)
