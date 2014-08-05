@@ -3,12 +3,21 @@
 
 <div style="font-size:2em">by @tombooth</div>
 
+<div class="notes">
+   - Picked up as an early 'learn clojure' project
+   - Not a web project
+   - Not just programming, reminded me of some basic physics
+</div>
+
 # Jackson Pollock
 
 ![Jackson Pollock: Number 8](img/number-8.jpg)
 
 <div class="notes">
-Famous 20th century abstract painter
+   - Famous 20th century abstract painter
+   - Made 'drip painting' famous, a form of action paiting
+   - Drips paints off brushes, sticks or bits of wood onto the cavnas
+   - We are going to start our model by considering a single point of paint, rather than a path
 </div>
 
 # Defining our space - I
@@ -16,7 +25,7 @@ Famous 20th century abstract painter
 ![](img/facts.jpg)
 
 <div class="notes">
-Some notes
+   - We need a space to work in and some basic physical details
 </div>
 
 # Defining our space - II
@@ -31,6 +40,12 @@ Some notes
 (def canvas-normal [0 1 0])
 ```
 
+<div class="notes">
+   - Facts defined using def and given a name
+   - These are composed of basic clojure types
+   - All our measurements are in SI units with pixel conversion in drawing
+</div>
+
 # Picking a starting point
 
 A gesture has to start somewhere inside of our defined space.
@@ -43,7 +58,8 @@ A gesture has to start somewhere inside of our defined space.
 ```
 
 <div class="notes">
-Some notes
+   - A gesture has to start somewhere
+   - A very expressive set of characters
 </div>
 
 # Projection - I
@@ -51,7 +67,10 @@ Some notes
 ![](img/projection.jpg)
 
 <div class="notes">
-Some notes
+   - Our point needs to hit the canvas
+   - Using basic equations of motion
+   - We know the the canvas is at y = 0
+   - We need ot find time to impact in order to find other values
 </div>
 
 # Projection - II
@@ -67,6 +86,11 @@ Some notes
         minus-sqrt (/ (- minus-b (Math/sqrt discriminant)) (* 2 a))]
     (max add-sqrt minus-sqrt)))
 ```
+
+<div class="notes">
+   - Solved nicely using Quadratic Equation
+   - One value will be negative so always pick the max
+</div>
 
 # Projection - III
 
@@ -95,7 +119,14 @@ Some notes
 ```
 
 <div class="notes">
-$v = at + v0$
+   - Now we have time to impact it is easy to derive everything else
+   - For the position we can use the same function as we derieved the time with:
+      + $r = r0 + v0 * t + \frac{at^2}{2}$
+   - For velocity we can use: $v = at + v0$
+
+   - An important aspect of Pollock's paintings is the splatter made
+     as he flicks paint against the canvas, we are now going to look
+     at how to work out whether this impact should splatter
 </div>
 
 # Splatter - I
@@ -103,13 +134,22 @@ $v = at + v0$
 ![](img/impact.jpg)
 
 <div class="notes">
-Impact force derived from work-energy principle:
-W=\Delta E_k=\tfrac12mv_2^2-\tfrac12mv_1^2,
+   - We need to work out whether an impact should splatter
+      + look at the impact force
+      + Impact force derived from work-energy principle:
+         * W=\Delta E_k=\tfrac12mv_2^2-\tfrac12mv_1^2,
+   - We need to define a cutoff for this
+   - If it does splatter we need to bounce the vector
+   - Collision is inelastic so it should absorb some of the vector
+      + inelastic means conservation of energy is not maintained and energy is lost
+        through various means
 </div>
 
 # Splatter - II
 
 ```{.clojure}
+;; B = V - (2 * (V.N) * N)
+
 (defn dot-product [vector1 vector2]
   (reduce + (map * vector1 vector2)))
 
@@ -126,7 +166,13 @@ W=\Delta E_k=\tfrac12mv_2^2-\tfrac12mv_1^2,
 ```
 
 <div class="notes">
-Some notes
+The equation to bounce a vector, $V$, off a plane with normal, $N$, is:
+
+   - $N$ is the normal vector of the plane
+   - $V$ = the incoming vector
+   - $B$ is the outgoing, bounced, vector
+
+$B = V - (2 * (V.N) * N)$
 </div>
 
 # Paths - I
@@ -134,7 +180,10 @@ Some notes
 ![](img/bezier.jpg)
 
 <div class="notes">
-Some notes
+   - Parametric curves used in vector graphics because they scale indefinitely
+   - Gives nice smooth curves
+   - We need anchor, or control, points to calculate a bezier curve
+   - Do a random walk in a random direction to define these
 </div>
 
 # Paths - II
@@ -158,7 +207,10 @@ Some notes
 ```
 
 <div class="notes">
-Some notes
+   - Lazy seqs, they are aces
+   - Random total distance and number of steps
+   - These are then used to work out the anchor points
+   - A known end point is used
 </div>
 
 # Paths - III
@@ -166,7 +218,9 @@ Some notes
 ![](img/de-casteljau.jpg)
 
 <div class="notes">
-Some notes
+   - De casteljau is a recursive method for evaluating Bezier curves
+   - Finding a point between two points (along a line)
+   - De casteljau is just that on mainly lines in parallel
 </div>
 
 # Paths - IV
@@ -193,7 +247,8 @@ Some notes
 ```
 
 <div class="notes">
-Some notes
+   - Considers each dimension on its own
+   - recur-relation is the weighted point calc
 </div>
 
 # A sense of motion - I
@@ -201,7 +256,8 @@ Some notes
 ![](img/motion.jpg)
 
 <div class="notes">
-Some notes
+   - Linear model for paint volume and velocity
+   - Sectors of path won't be even so need to consider velocity in sector
 </div>
 
 # A sense of motion - II
@@ -229,7 +285,7 @@ Some notes
 ```
 
 <div class="notes">
-Some notes
+   - map-2 runs over pairs of numbers
 </div>
 
 # Pull it all together
