@@ -1,9 +1,13 @@
 # Painting in Clojure
 
-Learn clojure by building a digital Jackson Pollock
+Explore clojure by building a digital Jackson Pollock
 
 ## Usage
 
+```
+$ lein cljsbuild once
+$ open web/index.html
+```
 
 ## License
 
