@@ -5,6 +5,8 @@
 ;; title: Painting in Clojure
 ;; ...
 
+;; <h1 style="background-color:red;color:white;display:inline-block;">DRAFT ARTICLE</h1>
+
 ;; Learning Clojure by building a digital Jackson Pollock.
 
 
@@ -134,7 +136,7 @@
 ;; In this function you can see an example of call out to Java.
 ;; Clojure doesn't have an inbuilt sqrt function so we are calling out
 ;; to the java version. A function named in the form `foo/bar` means
-;; it will call the function `bar` in the namespace `foo`. **WHAT IS A NAMESPACE?**
+;; it will call the function `bar` in the namespace `foo`. **NEED TO WRITE: WHAT IS A NAMESPACE?**
 
 (defn time-to-canvas [position velocity acceleration]
   (let [a acceleration
