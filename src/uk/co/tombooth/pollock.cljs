@@ -335,8 +335,8 @@
 
 
 ;; When an impact splatters it will only take a fraction of the
-;; velocity, otherwise know as being elastic rather than inelastic
-;; **check these definitions**. We can define a constant that will be
+;; velocity, otherwise know as being na inelastic rather than elastic
+;; collision. We can define a constant that will be
 ;; used to reduce the total velocity of the bounced vector to reflect
 ;; this elasticity.
 
