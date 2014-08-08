@@ -34,20 +34,18 @@ Fill canvas
 <h2 id="jackson-pollock">Jackson Pollock</h2>
 <p>He was an abstract artist who lived through the first half of the 20th century and is most famous for his drip paintings. This style of painting involves him using sticks brushes, sticks and cans to apply paint to the canvas with the motion of his gestures causing the artworks to come alive. You can get a good idea of how this comes together from <a href="https://www.youtube.com/watch?v=7bICqvmKL5s">this youtube video</a>.</p>
 <h2 id="setting-the-scene">Setting the scene</h2>
-<p>We want to define some facts about the space that our digital Pollock will work in. Clojure will let us define facts using one of the following value types:</p>
+<p>We want to define some facts about the space that our digital Pollock will work in. These facts will not change over the execution of our model and fit Clojure's preference for immutability perfectly. For those who have not come across the idea of mutability before it is simply whether something can be changed in place. In most languages if you set the label <code>some_number</code> to equal <code>5</code>, further on you can increment the value of <code>some_number</code> to <code>6</code> or even <code>7</code>. In Clojure if you tried to increment <code>some_number</code> you would get a new value rather than changing <code>some_number</code>.</p>
+<p>Clojure will let us define facts using one of the following value types:</p>
 <ul>
-<li>Number
-<ul>
-<li>102</li>
-<li>1.5</li>
-<li>1/2</li>
-</ul></li>
-<li>String &quot;&quot;</li>
-<li>List (...). You may notice all of the code written takes for form of lists. By default if you have written (...) Clojure will assume the first item is a function and the rest are arguments to be passed in. In order for the list not to be executed you should prefix it with a '.</li>
-<li>Vector [...]. A lot like a list except they are optimised for appending to the end of the list rather than the front</li>
-<li>Hash Map</li>
-<li>Hash Set</li>
+<li>A number. This could be <code>5</code> an integer, <code>3/2</code> a ratio/fraction or <code>3.14</code> a floating point number;</li>
+<li>A string, represented as a sequence of characters, for example <code>&quot;Hello world!&quot;</code>;</li>
+<li>A keyword, which are very similar to strings in appearance except they are preceeded by a colon e.g. <code>:an-identifier</code>. As alluded to in the example they are usually used for identifiers or labels and do not allow spaces.</li>
+<li>A list <code>(...)</code>, this is a way of grouping values into a collection with an explicit order. You may notice all of the code written takes for form of lists. By default if you have written <code>(...)</code> Clojure will assume the first item is a function and the rest are arguments to be passed in. In order for the list not to be executed you should prefix it with a <code>'</code>;</li>
+<li>A vector <code>[...]</code>, which is a lot like a list except that they are optimised for appending to the end of the sequence rather than to the front;</li>
+<li>A set <code>#{...}</code>. If you are not particularly bothered by the order of the values stored in your collection then you can use a set;</li>
+<li>Lastly there are maps <code>{...}</code>, these store pairs of values where the first is a key and the second is a value.</li>
 </ul>
+<p>If you would like to learn more about the basic types in Clojure, I suggest you read <a href="http://aphyr.com/posts/302-clojure-from-the-ground-up-basic-types">this great blog post</a> by Aphyr.</p>
 <p>The most important fact about the space is its size. We will use metres to measure the size only converting to pixels when we need to draw to the screen. We are going to define size as a vector containing its width, height and depth.</p>
 <pre class="sourceCode clojure"><code class="sourceCode clojure">(<a href="http://clojuredocs.org/clojure_core/clojure.core/def" target="_blank" class="kw">def</a><span class="fu"> space </span>[<span class="dv">8</span>   <span class="co">;; width</span>
             <span class="dv">5</span>   <span class="co">;; height</span>
