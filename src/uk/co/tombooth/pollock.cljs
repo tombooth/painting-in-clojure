@@ -5,8 +5,6 @@
 ;; title: Painting in Clojure
 ;; ...
 
-;; <h1 style="background-color:red;color:white;display:inline-block;">DRAFT ARTICLE</h1>
-
 ;; Learning Clojure by building a digital Jackson Pollock. This
 ;; article and the source code backing it can be [found on
 ;; GitHub](https://www.github.com/tombooth/painting-in-clojure).
