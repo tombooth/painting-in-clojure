@@ -32,23 +32,44 @@
 ;; ## Setting the scene
 
 ;; We want to define some facts about the space that our digital
-;; Pollock will work in. Clojure will let us define facts using one of
-;; the following value types:
+;; Pollock will work in. These facts will not change over the
+;; execution of our model and fit Clojure's preference for
+;; immutability perfectly. For those who have not come across the idea
+;; of mutability before it is simply whether something can be changed
+;; in place. In most languages if you set the label `some_number` to
+;; equal `5`, further on you can increment the value of `some_number` to
+;; `6` or even `7`. In Clojure if you tried to increment `some_number`
+;; you would get a new value rather than changing `some_number`.
+
+
+;; Clojure will let us define facts using one of the following value types:
 ;;
-;;    - Number
-;;       + 102
-;;       + 1.5
-;;       + 1/2
-;;    - String ""
-;;    - List (...). You may notice all of the code written takes for
-;;      form of lists. By default if you have written (...) Clojure
+;;    - A number. This could be `5` an integer, `3/2` a ratio/fraction
+;;      or `3.14` a floating point number;
+;;    - A string, represented as a sequence of characters, for example
+;;      `"Hello world!"`;
+;;    - A keyword, which are very similar to strings in appearance
+;;      except they are preceeded by a colon e.g. `:an-identifier`. As
+;;      alluded to in the example they are usually used for identifiers or
+;;      labels and do not allow spaces.
+;;    - A list `(...)`, this is a way of grouping values into a
+;;      collection with an explicit order. You may notice all of
+;;      the code written takes for
+;;      form of lists. By default if you have written `(...)` Clojure
 ;;      will assume the first item is a function and the rest are
 ;;      arguments to be passed in. In order for the list not to be
-;;      executed you should prefix it with a '.
-;;    - Vector [...]. A lot like a list except they are optimised for
-;;      appending to the end of the list rather than the front
-;;    - Hash Map
-;;    - Hash Set
+;;      executed you should prefix it with a `'`;
+;;    - A vector `[...]`, which is a lot like a list except that they are optimised for
+;;      appending to the end of the sequence rather than to the front;
+;;    - A set `#{...}`. If you are not particularly bothered by the order of
+;;      the values stored in your collection then you can use a set;
+;;    - Lastly there are maps `{...}`, these store pairs of values
+;;      where the first is a key and the second is a value.
+
+;; If you would like to learn more about the basic types in Clojure, I
+;; suggest you read [this great blog
+;; post](http://aphyr.com/posts/302-clojure-from-the-ground-up-basic-types) 
+;; by Aphyr.
 
 ;; The most important fact about the space is its size. We will use
 ;; metres to measure the size only converting to pixels when we need
