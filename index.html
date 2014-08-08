@@ -131,15 +131,32 @@ Fill canvas
 <h2 id="paint-splatter">Paint splatter</h2>
 <p>An important aspect of Pollocks painting is the splatter of the paint hitting the canvas and what this adds to the images. We are going to add a simple splatter model based of the velocity at impact we calculated in the last part.</p>
 <p>Not all paint that hits the canvas will splatter, so we need to work out the impact force of the paint and use this as a cutoff for whether the paint should splatter.</p>
+<p>We will work out the impact force of the paint by taking the velocity at impact and calculating the force required to reduce that velocity to 0 over a set impact distance.</p>
+<pre class="sourceCode clojure"><code class="sourceCode clojure">(<a href="http://clojuredocs.org/clojure_core/clojure.core/def" target="_blank" class="kw">def</a><span class="fu"> impact-distance </span><span class="fl">0.05</span>)</code></pre>
+<p>We can now use the work-energy principle (https://en.wikipedia.org/wiki/Work_(physics)#Work_and_energy) to calculate the impact force. On one side of the equation we will have the forces at play and the other the energy:</p>
+<ul>
+<li><span class="math">\(F_{i}\)</span> = impact force,</li>
+<li>d = impact distance,</li>
+<li>m = mass,</li>
+<li>g = gravity,</li>
+<li>v = velocity at impact.</li>
+</ul>
+<p><span class="math">\(-F_{i}d + mgd = 0 - \frac{1}{2}mv^2\)</span></p>
+<p>This equation can be rearranged to:</p>
+<p><span class="math">\(F_{i} = mg + \frac{mv^2}{2d}\)</span></p>
+<p>For simplicity of code we are just going to consider the y axis as this is the most important when it comes to working out the impact force of the paint into the canvase. The above equation can therefore be expressed as:</p>
+<pre class="sourceCode clojure"><code class="sourceCode clojure">(<a href="http://clojuredocs.org/clojure_core/clojure.core/defn" target="_blank" class="kw">defn</a><span class="fu"> impact-force </span>[mass velocity]
+  (<a href="http://clojuredocs.org/clojure_core/clojure.core/let" target="_blank" class="kw">let</a> [y-gravity (<a href="http://clojuredocs.org/clojure_core/clojure.core/second" target="_blank" class="kw">second</a> gravity)
+        y-velocity (<a href="http://clojuredocs.org/clojure_core/clojure.core/second" target="_blank" class="kw">second</a> velocity)]
+    (<a href="http://clojuredocs.org/clojure_core/clojure.core/+" target="_blank" class="kw">+</a> (<a href="http://clojuredocs.org/clojure_core/clojure.core/*" target="_blank" class="kw">*</a> mass y-gravity) (<a href="http://clojuredocs.org/clojure_core/clojure.core//" target="_blank" class="kw">/</a> (<a href="http://clojuredocs.org/clojure_core/clojure.core/*" target="_blank" class="kw">*</a> mass y-velocity y-velocity)
+                             (<a href="http://clojuredocs.org/clojure_core/clojure.core/*" target="_blank" class="kw">*</a> <span class="dv">2</span> impact-distance)))))</code></pre>
 <p>In order to work out this value as a scalar we will need to be able to calculate the absolute value of a vector. This can be done by summing the squares of the vector's components and then taking the square root of that summation.</p>
 <p>This function will introduce a shorthand for defining functions that is very useful in combination with functions like <code>map</code> and <code>reduce</code>. Rather than writing <code>(fn [args...] body)</code> you can use <code>#(body)</code> and if you want access to the arguments use <code>%n</code> where <code>n</code> is the position of the argument. If you are only expecting one argument then you can use just <code>%</code> on its own.</p>
 <pre class="sourceCode clojure"><code class="sourceCode clojure">(<a href="http://clojuredocs.org/clojure_core/clojure.core/defn" target="_blank" class="kw">defn</a><span class="fu"> vector-absolute </span>[<a href="http://clojuredocs.org/clojure_core/clojure.core/vector" target="_blank" class="kw">vector</a>]
-  (Math/sqrt (<a href="http://clojuredocs.org/clojure_core/clojure.core/reduce" target="_blank" class="kw">reduce</a> <a href="http://clojuredocs.org/clojure_core/clojure.core/+" target="_blank" class="kw">+</a> (<a href="http://clojuredocs.org/clojure_core/clojure.core/map" target="_blank" class="kw">map</a> #(<a href="http://clojuredocs.org/clojure_core/clojure.core/*" target="_blank" class="kw">*</a> % %) <a href="http://clojuredocs.org/clojure_core/clojure.core/vector" target="_blank" class="kw">vector</a>))))</code></pre>
-<p><strong>need something about why it is ok this is velocity and not acceleration, maybe because it is the relative acceleration of the imapct of the two objects (paint has velocity, cavnas doesn't so accel = velocity?)</strong></p>
-<pre class="sourceCode clojure"><code class="sourceCode clojure">(<a href="http://clojuredocs.org/clojure_core/clojure.core/defn" target="_blank" class="kw">defn</a><span class="fu"> impact-force </span>[mass velocity]
-  (<a href="http://clojuredocs.org/clojure_core/clojure.core/*" target="_blank" class="kw">*</a> (vector-absolute velocity) mass))</code></pre>
+  (Math/sqrt (<a href="http://clojuredocs.org/clojure_core/clojure.core/reduce" target="_blank" class="kw">reduce</a> <a href="http://clojuredocs.org/clojure_core/clojure.core/+" target="_blank" class="kw">+</a> (<a href="http://clojuredocs.org/clojure_core/clojure.core/map" target="_blank" class="kw">map</a> #(<a href="http://clojuredocs.org/clojure_core/clojure.core/*" target="_blank" class="kw">*</a> % %) <a href="http://clojuredocs.org/clojure_core/clojure.core/vector" target="_blank" class="kw">vector</a>))))
+</code></pre>
 <p>Based of this function to calculate the impact force we can define a predicate that will tell us whether paint should splatter based off its mass and velocity. It is idiomatic in Clojure to end predicates with a <code>?</code>. We are going to add some randomness to this function so that we don't necessarily just get a uniform line of points. Also defined is a minimum force for us to consider whether some paint could splatter.</p>
-<pre class="sourceCode clojure"><code class="sourceCode clojure">(<a href="http://clojuredocs.org/clojure_core/clojure.core/def" target="_blank" class="kw">def</a><span class="fu"> min-impact-force-for-splatter </span><span class="dv">50</span>)
+<pre class="sourceCode clojure"><code class="sourceCode clojure">(<a href="http://clojuredocs.org/clojure_core/clojure.core/def" target="_blank" class="kw">def</a><span class="fu"> min-impact-force-for-splatter </span><span class="dv">30</span>)
 
 (<a href="http://clojuredocs.org/clojure_core/clojure.core/defn" target="_blank" class="kw">defn</a><span class="fu"> does-impact-splatter</span>? [mass velocity]
   (<a href="http://clojuredocs.org/clojure_core/clojure.core/and" target="_blank" class="kw">and</a> (<a href="http://clojuredocs.org/clojure_core/clojure.core/&gt;" target="_blank" class="kw">&gt;</a> (impact-force mass velocity) min-impact-force-for-splatter)
@@ -317,7 +334,7 @@ Fill canvas
         total-time     (random-between <span class="dv">1</span> <span class="dv">5</span>)
         <a href="http://clojuredocs.org/clojure_core/clojure.core/path" target="_blank" class="kw">path</a>           (ensure-above-canvas (de-casteljau (anchor-points position <span class="fl">0.1</span> <span class="dv">2</span> <span class="dv">3</span> <span class="dv">15</span> <span class="fl">0.4</span>) <span class="fl">0.01</span>))
         velocities     (path-velocities <a href="http://clojuredocs.org/clojure_core/clojure.core/path" target="_blank" class="kw">path</a> total-time)
-        masses         (path-masses <a href="http://clojuredocs.org/clojure_core/clojure.core/path" target="_blank" class="kw">path</a> (random-between <span class="dv">5</span> <span class="dv">30</span>))
+        masses         (path-masses <a href="http://clojuredocs.org/clojure_core/clojure.core/path" target="_blank" class="kw">path</a> (random-between <span class="fl">0.1</span> <span class="dv">1</span>))
         projected-path (<a href="http://clojuredocs.org/clojure_core/clojure.core/map" target="_blank" class="kw">map</a> #(project-point %<span class="dv">1</span> %<span class="dv">2</span>) <a href="http://clojuredocs.org/clojure_core/clojure.core/path" target="_blank" class="kw">path</a> velocities)
         splatter       (<a href="http://clojuredocs.org/clojure_core/clojure.core/map" target="_blank" class="kw">map</a> (<a href="http://clojuredocs.org/clojure_core/clojure.core/fn" target="_blank" class="kw">fn</a> [[position velocity] mass]
                               (<a href="http://clojuredocs.org/clojure_core/clojure.core/if" target="_blank" class="kw">if</a> (does-impact-splatter? mass velocity)
@@ -368,16 +385,19 @@ Fill canvas
   <a href="http://clojuredocs.org/clojure_core/clojure.core/:host" target="_blank" class="kw">:host</a> <span class="st">&quot;pollock&quot;</span>     <span class="co">;; the id of the &lt;canvas&gt; element</span>
   <a href="http://clojuredocs.org/clojure_core/clojure.core/:size" target="_blank" class="kw">:size</a> sketch-size)</code></pre>
 <p>To draw the trails of paint across the canvas we need draw a path following the defined positions, which takes into account the amount of paint at each position and uses this to set with width of the path. In order to do this cleanly in Quil we need to consider the path as pairs of positions that we shall draw paths between using the initial paint amount as the stroke-weight. This allows for a smooth decrease in the width of the path.</p>
-<pre class="sourceCode clojure"><code class="sourceCode clojure">(<a href="http://clojuredocs.org/clojure_core/clojure.core/defn" target="_blank" class="kw">defn</a><span class="fu"> draw-path </span>[<a href="http://clojuredocs.org/clojure_core/clojure.core/path" target="_blank" class="kw">path</a>]
+<pre class="sourceCode clojure"><code class="sourceCode clojure">(<a href="http://clojuredocs.org/clojure_core/clojure.core/defn" target="_blank" class="kw">defn</a><span class="fu"> mass-to-weight </span>[mass]
+  (<a href="http://clojuredocs.org/clojure_core/clojure.core/*" target="_blank" class="kw">*</a> <span class="dv">50</span> mass))
+
+(<a href="http://clojuredocs.org/clojure_core/clojure.core/defn" target="_blank" class="kw">defn</a><span class="fu"> draw-path </span>[<a href="http://clojuredocs.org/clojure_core/clojure.core/path" target="_blank" class="kw">path</a>]
   (<a href="http://clojuredocs.org/clojure_core/clojure.core/doall" target="_blank" class="kw">doall</a>
    (map<span class="dv">-2</span> (<a href="http://clojuredocs.org/clojure_core/clojure.core/fn" target="_blank" class="kw">fn</a> [[position1 _ mass] [position2 _ _]]
-            (q/stroke-weight mass)
+            (q/stroke-weight (mass-to-weight mass))
             (<a href="http://clojuredocs.org/clojure_core/clojure.core/apply" target="_blank" class="kw">apply</a> q/line (<a href="http://clojuredocs.org/clojure_core/clojure.core/concat" target="_blank" class="kw">concat</a> (position-to-pixel position1) (position-to-pixel position2))))
           <a href="http://clojuredocs.org/clojure_core/clojure.core/path" target="_blank" class="kw">path</a>)))</code></pre>
 <p>For splatter we are just going to draw a point that has a stroke-weight proportional to the amount of paint.</p>
 <pre class="sourceCode clojure"><code class="sourceCode clojure">(<a href="http://clojuredocs.org/clojure_core/clojure.core/defn" target="_blank" class="kw">defn</a><span class="fu"> draw-splats </span>[<a href="http://clojuredocs.org/clojure_core/clojure.core/path" target="_blank" class="kw">path</a>]
   (<a href="http://clojuredocs.org/clojure_core/clojure.core/doall" target="_blank" class="kw">doall</a> (<a href="http://clojuredocs.org/clojure_core/clojure.core/map" target="_blank" class="kw">map</a> (<a href="http://clojuredocs.org/clojure_core/clojure.core/fn" target="_blank" class="kw">fn</a> [[position _ mass]]
-                (q/stroke-weight mass)
+                (q/stroke-weight (mass-to-weight mass))
                 (<a href="http://clojuredocs.org/clojure_core/clojure.core/apply" target="_blank" class="kw">apply</a> q/point (position-to-pixel position)))
               <a href="http://clojuredocs.org/clojure_core/clojure.core/path" target="_blank" class="kw">path</a>)))</code></pre>
 <p>Now that we can render the result of flinging some paint around we need a function that will fling the paint and render the result.</p>

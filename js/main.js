@@ -29858,32 +29858,35 @@ uk.co.tombooth.pollock.velocity_at = function velocity_at(time, initial_velocity
   return acceleration * time + initial_velocity;
 };
 uk.co.tombooth.pollock.project_point = function project_point(position, velocity) {
-  var vec__8680 = position;
-  var i = cljs.core.nth.call(null, vec__8680, 0, null);
-  var j = cljs.core.nth.call(null, vec__8680, 1, null);
-  var k = cljs.core.nth.call(null, vec__8680, 2, null);
-  var vec__8681 = velocity;
-  var vi = cljs.core.nth.call(null, vec__8681, 0, null);
-  var vj = cljs.core.nth.call(null, vec__8681, 1, null);
-  var vk = cljs.core.nth.call(null, vec__8681, 2, null);
-  var vec__8682 = uk.co.tombooth.pollock.gravity;
-  var ai = cljs.core.nth.call(null, vec__8682, 0, null);
-  var aj = cljs.core.nth.call(null, vec__8682, 1, null);
-  var ak = cljs.core.nth.call(null, vec__8682, 2, null);
+  var vec__9835 = position;
+  var i = cljs.core.nth.call(null, vec__9835, 0, null);
+  var j = cljs.core.nth.call(null, vec__9835, 1, null);
+  var k = cljs.core.nth.call(null, vec__9835, 2, null);
+  var vec__9836 = velocity;
+  var vi = cljs.core.nth.call(null, vec__9836, 0, null);
+  var vj = cljs.core.nth.call(null, vec__9836, 1, null);
+  var vk = cljs.core.nth.call(null, vec__9836, 2, null);
+  var vec__9837 = uk.co.tombooth.pollock.gravity;
+  var ai = cljs.core.nth.call(null, vec__9837, 0, null);
+  var aj = cljs.core.nth.call(null, vec__9837, 1, null);
+  var ak = cljs.core.nth.call(null, vec__9837, 2, null);
   var time = uk.co.tombooth.pollock.time_to_canvas.call(null, j, vj, aj);
   var projected_position = new cljs.core.PersistentVector(null, 3, 5, cljs.core.PersistentVector.EMPTY_NODE, [uk.co.tombooth.pollock.position_at.call(null, time, i, vi, ai), 0, uk.co.tombooth.pollock.position_at.call(null, time, k, vk, ak)], null);
   var projected_velocity = new cljs.core.PersistentVector(null, 3, 5, cljs.core.PersistentVector.EMPTY_NODE, [uk.co.tombooth.pollock.velocity_at.call(null, time, vi, ai), uk.co.tombooth.pollock.velocity_at.call(null, time, vj, aj), uk.co.tombooth.pollock.velocity_at.call(null, time, vk, ak)], null);
   return new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [projected_position, projected_velocity], null);
 };
+uk.co.tombooth.pollock.impact_distance = .05;
+uk.co.tombooth.pollock.impact_force = function impact_force(mass, velocity) {
+  var y_gravity = cljs.core.second.call(null, uk.co.tombooth.pollock.gravity);
+  var y_velocity = cljs.core.second.call(null, velocity);
+  return mass * y_gravity + mass * y_velocity * y_velocity / (2 * uk.co.tombooth.pollock.impact_distance);
+};
 uk.co.tombooth.pollock.vector_absolute = function vector_absolute(vector) {
-  return Math.sqrt.call(null, cljs.core.reduce.call(null, cljs.core._PLUS_, cljs.core.map.call(null, function(p1__8683_SHARP_) {
-    return p1__8683_SHARP_ * p1__8683_SHARP_;
+  return Math.sqrt.call(null, cljs.core.reduce.call(null, cljs.core._PLUS_, cljs.core.map.call(null, function(p1__9838_SHARP_) {
+    return p1__9838_SHARP_ * p1__9838_SHARP_;
   }, vector)));
 };
-uk.co.tombooth.pollock.impact_force = function impact_force(mass, velocity) {
-  return uk.co.tombooth.pollock.vector_absolute.call(null, velocity) * mass;
-};
-uk.co.tombooth.pollock.min_impact_force_for_splatter = 50;
+uk.co.tombooth.pollock.min_impact_force_for_splatter = 30;
 uk.co.tombooth.pollock.does_impact_splatter_QMARK_ = function does_impact_splatter_QMARK_(mass, velocity) {
   return uk.co.tombooth.pollock.impact_force.call(null, mass, velocity) > uk.co.tombooth.pollock.min_impact_force_for_splatter && cljs.core.rand.call(null) > .8;
 };
@@ -29894,8 +29897,8 @@ uk.co.tombooth.pollock.vector_subtraction = function vector_subtraction(vector1,
   return cljs.core.map.call(null, cljs.core._, vector1, vector2);
 };
 uk.co.tombooth.pollock.vector_multiply_by_constant = function vector_multiply_by_constant(vector, constant) {
-  return cljs.core.map.call(null, function(p1__8684_SHARP_) {
-    return p1__8684_SHARP_ * constant;
+  return cljs.core.map.call(null, function(p1__9839_SHARP_) {
+    return p1__9839_SHARP_ * constant;
   }, vector);
 };
 uk.co.tombooth.pollock.bounce_vector = function bounce_vector(vector, normal) {
@@ -29946,37 +29949,37 @@ uk.co.tombooth.pollock.for_component = function for_component(t, component_vals)
   if (cljs.core._EQ_.call(null, cljs.core.count.call(null, component_vals), 1)) {
     return cljs.core.first.call(null, component_vals);
   } else {
-    return for_component.call(null, t, cljs.core.map.call(null, function(p1__8685_SHARP_, p2__8686_SHARP_) {
-      return uk.co.tombooth.pollock.recur_relation.call(null, t, p1__8685_SHARP_, p2__8686_SHARP_);
+    return for_component.call(null, t, cljs.core.map.call(null, function(p1__9840_SHARP_, p2__9841_SHARP_) {
+      return uk.co.tombooth.pollock.recur_relation.call(null, t, p1__9840_SHARP_, p2__9841_SHARP_);
     }, component_vals, cljs.core.rest.call(null, component_vals)));
   }
 };
 uk.co.tombooth.pollock.for_t = function for_t(t, components) {
-  return cljs.core.map.call(null, function(p1__8687_SHARP_) {
-    return uk.co.tombooth.pollock.for_component.call(null, t, p1__8687_SHARP_);
+  return cljs.core.map.call(null, function(p1__9842_SHARP_) {
+    return uk.co.tombooth.pollock.for_component.call(null, t, p1__9842_SHARP_);
   }, components);
 };
 uk.co.tombooth.pollock.de_casteljau = function de_casteljau(control_points, step_amount) {
   var x_vals = cljs.core.map.call(null, cljs.core.first, control_points);
   var y_vals = cljs.core.map.call(null, cljs.core.second, control_points);
   var z_vals = cljs.core.map.call(null, function(x_vals, y_vals) {
-    return function(p1__8688_SHARP_) {
-      return cljs.core.nth.call(null, p1__8688_SHARP_, 2);
+    return function(p1__9843_SHARP_) {
+      return cljs.core.nth.call(null, p1__9843_SHARP_, 2);
     };
   }(x_vals, y_vals), control_points);
   var points = cljs.core.map.call(null, function(x_vals, y_vals, z_vals) {
-    return function(p1__8689_SHARP_) {
-      return uk.co.tombooth.pollock.for_t.call(null, p1__8689_SHARP_, new cljs.core.PersistentVector(null, 3, 5, cljs.core.PersistentVector.EMPTY_NODE, [x_vals, y_vals, z_vals], null));
+    return function(p1__9844_SHARP_) {
+      return uk.co.tombooth.pollock.for_t.call(null, p1__9844_SHARP_, new cljs.core.PersistentVector(null, 3, 5, cljs.core.PersistentVector.EMPTY_NODE, [x_vals, y_vals, z_vals], null));
     };
   }(x_vals, y_vals, z_vals), cljs.core.range.call(null, 0, 1, step_amount));
   return points;
 };
 uk.co.tombooth.pollock.ensure_above_canvas = function ensure_above_canvas(path) {
-  return cljs.core.map.call(null, function(p__8692) {
-    var vec__8693 = p__8692;
-    var i = cljs.core.nth.call(null, vec__8693, 0, null);
-    var j = cljs.core.nth.call(null, vec__8693, 1, null);
-    var k = cljs.core.nth.call(null, vec__8693, 2, null);
+  return cljs.core.map.call(null, function(p__9847) {
+    var vec__9848 = p__9847;
+    var i = cljs.core.nth.call(null, vec__9848, 0, null);
+    var j = cljs.core.nth.call(null, vec__9848, 1, null);
+    var k = cljs.core.nth.call(null, vec__9848, 2, null);
     return new cljs.core.PersistentVector(null, 3, 5, cljs.core.PersistentVector.EMPTY_NODE, [i, j < 0 ? 0 : j, k], null);
   }, path);
 };
@@ -30007,8 +30010,8 @@ uk.co.tombooth.pollock.path_length = function path_length(path) {
   return cljs.core.reduce.call(null, cljs.core._PLUS_, uk.co.tombooth.pollock.map_2.call(null, uk.co.tombooth.pollock.distance_between_points, path));
 };
 uk.co.tombooth.pollock.vector_divide_by_const = function vector_divide_by_const(vector, const$) {
-  return cljs.core.map.call(null, function(p1__8694_SHARP_) {
-    return p1__8694_SHARP_ / const$;
+  return cljs.core.map.call(null, function(p1__9849_SHARP_) {
+    return p1__9849_SHARP_ / const$;
   }, vector);
 };
 uk.co.tombooth.pollock.velocity_between = function velocity_between(point1, point2, total_time, total_distance) {
@@ -30020,8 +30023,8 @@ uk.co.tombooth.pollock.path_velocities = function path_velocities(path, total_ti
   var total_distance = uk.co.tombooth.pollock.path_length.call(null, path);
   var number_of_points = cljs.core.count.call(null, path);
   return cljs.core.conj.call(null, cljs.core.vec.call(null, uk.co.tombooth.pollock.map_2.call(null, function(total_distance, number_of_points) {
-    return function(p1__8695_SHARP_, p2__8696_SHARP_) {
-      return uk.co.tombooth.pollock.velocity_between.call(null, p1__8695_SHARP_, p2__8696_SHARP_, total_time, total_distance);
+    return function(p1__9850_SHARP_, p2__9851_SHARP_) {
+      return uk.co.tombooth.pollock.velocity_between.call(null, p1__9850_SHARP_, p2__9851_SHARP_, total_time, total_distance);
     };
   }(total_distance, number_of_points), path)), new cljs.core.PersistentVector(null, 3, 5, cljs.core.PersistentVector.EMPTY_NODE, [0, 0, 0], null));
 };
@@ -30041,17 +30044,17 @@ uk.co.tombooth.pollock.fling_paint = function fling_paint() {
   var total_time = uk.co.tombooth.pollock.random_between.call(null, 1, 5);
   var path = uk.co.tombooth.pollock.ensure_above_canvas.call(null, uk.co.tombooth.pollock.de_casteljau.call(null, uk.co.tombooth.pollock.anchor_points.call(null, position, .1, 2, 3, 15, .4), .01));
   var velocities = uk.co.tombooth.pollock.path_velocities.call(null, path, total_time);
-  var masses = uk.co.tombooth.pollock.path_masses.call(null, path, uk.co.tombooth.pollock.random_between.call(null, 5, 30));
+  var masses = uk.co.tombooth.pollock.path_masses.call(null, path, uk.co.tombooth.pollock.random_between.call(null, .1, 1));
   var projected_path = cljs.core.map.call(null, function(position, total_time, path, velocities, masses) {
-    return function(p1__8697_SHARP_, p2__8698_SHARP_) {
-      return uk.co.tombooth.pollock.project_point.call(null, p1__8697_SHARP_, p2__8698_SHARP_);
+    return function(p1__9852_SHARP_, p2__9853_SHARP_) {
+      return uk.co.tombooth.pollock.project_point.call(null, p1__9852_SHARP_, p2__9853_SHARP_);
     };
   }(position, total_time, path, velocities, masses), path, velocities);
   var splatter = cljs.core.map.call(null, function(position, total_time, path, velocities, masses, projected_path) {
-    return function(p__8706, mass) {
-      var vec__8707 = p__8706;
-      var position__$1 = cljs.core.nth.call(null, vec__8707, 0, null);
-      var velocity = cljs.core.nth.call(null, vec__8707, 1, null);
+    return function(p__9861, mass) {
+      var vec__9862 = p__9861;
+      var position__$1 = cljs.core.nth.call(null, vec__9862, 0, null);
+      var velocity = cljs.core.nth.call(null, vec__9862, 1, null);
       if (uk.co.tombooth.pollock.does_impact_splatter_QMARK_.call(null, mass, velocity)) {
         return new cljs.core.PersistentVector(null, 3, 5, cljs.core.PersistentVector.EMPTY_NODE, [position__$1, uk.co.tombooth.pollock.splatter_vector.call(null, velocity), mass * uk.co.tombooth.pollock.splatter_dampening_constant], null);
       } else {
@@ -30060,12 +30063,12 @@ uk.co.tombooth.pollock.fling_paint = function fling_paint() {
     };
   }(position, total_time, path, velocities, masses, projected_path), projected_path, masses);
   var projected_splatter = cljs.core.map.call(null, function(position, total_time, path, velocities, masses, projected_path, splatter) {
-    return function(p__8708) {
-      var vec__8709 = p__8708;
-      var position__$1 = cljs.core.nth.call(null, vec__8709, 0, null);
-      var velocity = cljs.core.nth.call(null, vec__8709, 1, null);
-      var mass = cljs.core.nth.call(null, vec__8709, 2, null);
-      var point = vec__8709;
+    return function(p__9863) {
+      var vec__9864 = p__9863;
+      var position__$1 = cljs.core.nth.call(null, vec__9864, 0, null);
+      var velocity = cljs.core.nth.call(null, vec__9864, 1, null);
+      var mass = cljs.core.nth.call(null, vec__9864, 2, null);
+      var point = vec__9864;
       if (point == null) {
         return null;
       } else {
@@ -30074,38 +30077,38 @@ uk.co.tombooth.pollock.fling_paint = function fling_paint() {
     };
   }(position, total_time, path, velocities, masses, projected_path, splatter), splatter);
   return new cljs.core.PersistentArrayMap(null, 4, [new cljs.core.Keyword(null, "colour", "colour", 2137094554), uk.co.tombooth.pollock.pick_a_colour.call(null), new cljs.core.Keyword(null, "air-path", "air-path", 1013645180), path, new cljs.core.Keyword(null, "canvas-path", "canvas-path", 658132618), cljs.core.map.call(null, function(position, total_time, path, velocities, masses, projected_path, splatter, projected_splatter) {
-    return function(p1__8699_SHARP_, p2__8700_SHARP_) {
-      return cljs.core.conj.call(null, p1__8699_SHARP_, p2__8700_SHARP_);
+    return function(p1__9854_SHARP_, p2__9855_SHARP_) {
+      return cljs.core.conj.call(null, p1__9854_SHARP_, p2__9855_SHARP_);
     };
   }(position, total_time, path, velocities, masses, projected_path, splatter, projected_splatter), projected_path, masses), new cljs.core.Keyword(null, "splatter", "splatter", 234687886), cljs.core.filter.call(null, function(position, total_time, path, velocities, masses, projected_path, splatter, projected_splatter) {
-    return function(p1__8701_SHARP_) {
-      return cljs.core.not_any_QMARK_.call(null, cljs.core.nil_QMARK_, p1__8701_SHARP_);
+    return function(p1__9856_SHARP_) {
+      return cljs.core.not_any_QMARK_.call(null, cljs.core.nil_QMARK_, p1__9856_SHARP_);
     };
   }(position, total_time, path, velocities, masses, projected_path, splatter, projected_splatter), cljs.core.partition_by.call(null, cljs.core.nil_QMARK_, projected_splatter))], null);
 };
 uk.co.tombooth.pollock.image_width = document.querySelector("#pollock").clientWidth;
 uk.co.tombooth.pollock.pixels_in_a_metre = function() {
-  var vec__8710 = uk.co.tombooth.pollock.space;
-  var width = cljs.core.nth.call(null, vec__8710, 0, null);
-  var _ = cljs.core.nth.call(null, vec__8710, 1, null);
-  var ___$1 = cljs.core.nth.call(null, vec__8710, 2, null);
+  var vec__9865 = uk.co.tombooth.pollock.space;
+  var width = cljs.core.nth.call(null, vec__9865, 0, null);
+  var _ = cljs.core.nth.call(null, vec__9865, 1, null);
+  var ___$1 = cljs.core.nth.call(null, vec__9865, 2, null);
   return uk.co.tombooth.pollock.image_width / width;
 }();
 uk.co.tombooth.pollock.metres_to_pixels = function metres_to_pixels(metres) {
   return Math.floor.call(null, metres * uk.co.tombooth.pollock.pixels_in_a_metre);
 };
 uk.co.tombooth.pollock.sketch_size = function() {
-  var vec__8711 = uk.co.tombooth.pollock.space;
-  var width = cljs.core.nth.call(null, vec__8711, 0, null);
-  var _ = cljs.core.nth.call(null, vec__8711, 1, null);
-  var height = cljs.core.nth.call(null, vec__8711, 2, null);
+  var vec__9866 = uk.co.tombooth.pollock.space;
+  var width = cljs.core.nth.call(null, vec__9866, 0, null);
+  var _ = cljs.core.nth.call(null, vec__9866, 1, null);
+  var height = cljs.core.nth.call(null, vec__9866, 2, null);
   return new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [uk.co.tombooth.pollock.metres_to_pixels.call(null, width), uk.co.tombooth.pollock.metres_to_pixels.call(null, height)], null);
 }();
-uk.co.tombooth.pollock.position_to_pixel = function position_to_pixel(p__8712) {
-  var vec__8714 = p__8712;
-  var i = cljs.core.nth.call(null, vec__8714, 0, null);
-  var j = cljs.core.nth.call(null, vec__8714, 1, null);
-  var k = cljs.core.nth.call(null, vec__8714, 2, null);
+uk.co.tombooth.pollock.position_to_pixel = function position_to_pixel(p__9867) {
+  var vec__9869 = p__9867;
+  var i = cljs.core.nth.call(null, vec__9869, 0, null);
+  var j = cljs.core.nth.call(null, vec__9869, 1, null);
+  var k = cljs.core.nth.call(null, vec__9869, 2, null);
   return new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [uk.co.tombooth.pollock.metres_to_pixels.call(null, i), uk.co.tombooth.pollock.metres_to_pixels.call(null, k)], null);
 };
 uk.co.tombooth.pollock.setup_image = function setup_image() {
@@ -30122,45 +30125,48 @@ if (cljs.core.truth_(cljs.core.some.call(null, function(p1__4506__4507__auto__) 
 } else {
   quil.sketch.add_sketch_to_init_list.call(null, new cljs.core.PersistentArrayMap(null, 2, [new cljs.core.Keyword(null, "fn", "fn", -1175266204), uk.co.tombooth.pollock.pollock, new cljs.core.Keyword(null, "host-id", "host-id", 742376279), (new cljs.core.Keyword(null, "host", "host", -1558485167)).cljs$core$IFn$_invoke$arity$1(quil.sketch.opts)], null));
 }
+uk.co.tombooth.pollock.mass_to_weight = function mass_to_weight(mass) {
+  return 50 * mass;
+};
 uk.co.tombooth.pollock.draw_path = function draw_path(path) {
-  return cljs.core.doall.call(null, uk.co.tombooth.pollock.map_2.call(null, function(p__8719, p__8720) {
-    var vec__8721 = p__8719;
-    var position1 = cljs.core.nth.call(null, vec__8721, 0, null);
-    var _ = cljs.core.nth.call(null, vec__8721, 1, null);
-    var mass = cljs.core.nth.call(null, vec__8721, 2, null);
-    var vec__8722 = p__8720;
-    var position2 = cljs.core.nth.call(null, vec__8722, 0, null);
-    var ___$1 = cljs.core.nth.call(null, vec__8722, 1, null);
-    var ___$2 = cljs.core.nth.call(null, vec__8722, 2, null);
-    quil.core.stroke_weight.call(null, mass);
+  return cljs.core.doall.call(null, uk.co.tombooth.pollock.map_2.call(null, function(p__9874, p__9875) {
+    var vec__9876 = p__9874;
+    var position1 = cljs.core.nth.call(null, vec__9876, 0, null);
+    var _ = cljs.core.nth.call(null, vec__9876, 1, null);
+    var mass = cljs.core.nth.call(null, vec__9876, 2, null);
+    var vec__9877 = p__9875;
+    var position2 = cljs.core.nth.call(null, vec__9877, 0, null);
+    var ___$1 = cljs.core.nth.call(null, vec__9877, 1, null);
+    var ___$2 = cljs.core.nth.call(null, vec__9877, 2, null);
+    quil.core.stroke_weight.call(null, uk.co.tombooth.pollock.mass_to_weight.call(null, mass));
     return cljs.core.apply.call(null, quil.core.line, cljs.core.concat.call(null, uk.co.tombooth.pollock.position_to_pixel.call(null, position1), uk.co.tombooth.pollock.position_to_pixel.call(null, position2)));
   }, path));
 };
 uk.co.tombooth.pollock.draw_splats = function draw_splats(path) {
-  return cljs.core.doall.call(null, cljs.core.map.call(null, function(p__8725) {
-    var vec__8726 = p__8725;
-    var position = cljs.core.nth.call(null, vec__8726, 0, null);
-    var _ = cljs.core.nth.call(null, vec__8726, 1, null);
-    var mass = cljs.core.nth.call(null, vec__8726, 2, null);
-    quil.core.stroke_weight.call(null, mass);
+  return cljs.core.doall.call(null, cljs.core.map.call(null, function(p__9880) {
+    var vec__9881 = p__9880;
+    var position = cljs.core.nth.call(null, vec__9881, 0, null);
+    var _ = cljs.core.nth.call(null, vec__9881, 1, null);
+    var mass = cljs.core.nth.call(null, vec__9881, 2, null);
+    quil.core.stroke_weight.call(null, uk.co.tombooth.pollock.mass_to_weight.call(null, mass));
     return cljs.core.apply.call(null, quil.core.point, uk.co.tombooth.pollock.position_to_pixel.call(null, position));
   }, path));
 };
 uk.co.tombooth.pollock.fling_and_render = function() {
   var fling_and_render__delegate = function(any) {
-    var _STAR_applet_STAR_8729 = quil.sketch._STAR_applet_STAR_;
+    var _STAR_applet_STAR_9884 = quil.sketch._STAR_applet_STAR_;
     try {
       quil.sketch._STAR_applet_STAR_ = quil.core.get_sketch_by_id.call(null, "pollock");
-      var map__8730 = uk.co.tombooth.pollock.fling_paint.call(null);
-      var map__8730__$1 = cljs.core.seq_QMARK_.call(null, map__8730) ? cljs.core.apply.call(null, cljs.core.hash_map, map__8730) : map__8730;
-      var splatter = cljs.core.get.call(null, map__8730__$1, new cljs.core.Keyword(null, "splatter", "splatter", 234687886));
-      var canvas_path = cljs.core.get.call(null, map__8730__$1, new cljs.core.Keyword(null, "canvas-path", "canvas-path", 658132618));
-      var colour = cljs.core.get.call(null, map__8730__$1, new cljs.core.Keyword(null, "colour", "colour", 2137094554));
+      var map__9885 = uk.co.tombooth.pollock.fling_paint.call(null);
+      var map__9885__$1 = cljs.core.seq_QMARK_.call(null, map__9885) ? cljs.core.apply.call(null, cljs.core.hash_map, map__9885) : map__9885;
+      var splatter = cljs.core.get.call(null, map__9885__$1, new cljs.core.Keyword(null, "splatter", "splatter", 234687886));
+      var canvas_path = cljs.core.get.call(null, map__9885__$1, new cljs.core.Keyword(null, "canvas-path", "canvas-path", 658132618));
+      var colour = cljs.core.get.call(null, map__9885__$1, new cljs.core.Keyword(null, "colour", "colour", 2137094554));
       quil.core.stroke.call(null, cljs.core.apply.call(null, quil.core.color, colour));
       uk.co.tombooth.pollock.draw_path.call(null, canvas_path);
       return cljs.core.doall.call(null, cljs.core.map.call(null, uk.co.tombooth.pollock.draw_splats, splatter));
     } finally {
-      quil.sketch._STAR_applet_STAR_ = _STAR_applet_STAR_8729;
+      quil.sketch._STAR_applet_STAR_ = _STAR_applet_STAR_9884;
     }
   };
   var fling_and_render = function(var_args) {
@@ -30171,8 +30177,8 @@ uk.co.tombooth.pollock.fling_and_render = function() {
     return fling_and_render__delegate.call(this, any);
   };
   fling_and_render.cljs$lang$maxFixedArity = 0;
-  fling_and_render.cljs$lang$applyTo = function(arglist__8731) {
-    var any = cljs.core.seq(arglist__8731);
+  fling_and_render.cljs$lang$applyTo = function(arglist__9886) {
+    var any = cljs.core.seq(arglist__9886);
     return fling_and_render__delegate(any);
   };
   fling_and_render.cljs$core$IFn$_invoke$arity$variadic = fling_and_render__delegate;
