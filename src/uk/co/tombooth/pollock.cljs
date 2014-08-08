@@ -166,10 +166,25 @@
 ;; us two results. In general we can say that we are interested in the
 ;; result with the maxium value.
 ;;
-;; In this function you can see an example of call out to Java.
-;; Clojure doesn't have an inbuilt sqrt function so we are calling out
-;; to the java version. A function named in the form `foo/bar` means
-;; it will call the function `bar` in the namespace `foo`. **NEED TO WRITE: WHAT IS A NAMESPACE?**
+;; In the next block of code you can see an example of call out to Java(Script).
+;; Clojure doesn't have an in-built square root function, so we are calling out
+;; to the Java(Script) version. A function named in the form `foo/bar` means
+;; it will call the function `bar` in the namespace `foo`. You might
+;; be wondering, what is a namespace?.
+
+;; All good languages need a way to
+;; bundle up code that is related, so that it can be reused and
+;; accessed only when needed. Clojure's take on this is to provide
+;; namespaces. Every Clojure source file will declare its namespace at
+;; the top of the file so that other files can reference it, extract
+;; values and use functions. Given that Clojure is a hosted language
+;; its namespace will related to packages in Java and Google Closure
+;; Library namespaces in Javascript.
+
+;; When hosted on Java all of java.util.* is automatically imported
+;; and on JavaScript assorted core and Google Closure Library modules
+;; are imported. Both of these languages provide us with a Math
+;; namespace which contains a `sqrt` function.
 
 (defn time-to-canvas [position velocity acceleration]
   (let [a acceleration
@@ -181,7 +196,7 @@
         minus-sqrt (/ (- minus-b (Math/sqrt discriminant)) (* 2 a))]
     (max add-sqrt minus-sqrt)))
 
-;; We can calculate the time but we want the final position and
+;; We can now calculate the time to impact but we want the final position and
 ;; velocity. For position we can use the same function that we
 ;; rearranged above to derive the time.
 
@@ -198,10 +213,10 @@
   (+ (* acceleration time) initial-velocity))
 
 
-;; These functions we just implemented can be joined up to get given
-;; an initial position and velocity and return the final position and
+;; These functions we just implemented can be joined up so that, given
+;; an initial position and velocity we can return the final position and
 ;; velocity. This function doesn't explicitly ask for the acceleration
-;; on the paint, it assumes only gravity is acting on it and uses the
+;; acting on the paint, it assumes only gravity is acting using the
 ;; constant defined earlier on.
 
 (defn project-point [position velocity]
