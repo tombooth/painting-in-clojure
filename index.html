@@ -16,11 +16,7 @@
       <h1>Painting in Clojure<small>by <a href="/">Tom Booth</a></small></h1>
     </header>
     <main>
-<h1 style="background-color:red;color:white;display:inline-block;">
-DRAFT ARTICLE
-</h1>
-
-<p>Learning Clojure by building a digital Jackson Pollock. This article and the source code backing it can be <a href="https://www.github.com/tombooth/painting-in-clojure">found on github</a>. Below is an example of what we will be building, running the code found in this page.</p>
+<p>Learning Clojure by building a digital Jackson Pollock. This article and the source code backing it can be <a href="https://www.github.com/tombooth/painting-in-clojure">found on GitHub</a>. Below is an example of what we will be building, running the code found in this page.</p>
 <canvas id="pollock" style="width: 100%; border: 5px solid #eee"></canvas>
 <button id="add">
 Add stroke
@@ -39,7 +35,7 @@ Fill canvas
 <ul>
 <li>A number. This could be <code>5</code> an integer, <code>3/2</code> a ratio/fraction or <code>3.14</code> a floating point number;</li>
 <li>A string, represented as a sequence of characters, for example <code>&quot;Hello world!&quot;</code>;</li>
-<li>A keyword, which are very similar to strings in appearance except they are preceeded by a colon e.g. <code>:an-identifier</code>. As alluded to in the example they are usually used for identifiers or labels and do not allow spaces.</li>
+<li>A keyword, which are very similar to strings in appearance except they are preceded by a colon e.g. <code>:an-identifier</code>. As alluded to in the example they are usually used for identifiers or labels and do not allow spaces.</li>
 <li>A list <code>(...)</code>, this is a way of grouping values into a collection with an explicit order. You may notice all of the code written takes for form of lists. By default if you have written <code>(...)</code> Clojure will assume the first item is a function and the rest are arguments to be passed in. In order for the list not to be executed you should prefix it with a <code>'</code>;</li>
 <li>A vector <code>[...]</code>, which is a lot like a list except that they are optimised for appending to the end of the sequence rather than to the front;</li>
 <li>A set <code>#{...}</code>. If you are not particularly bothered by the order of the values stored in your collection then you can use a set;</li>
@@ -80,7 +76,7 @@ Fill canvas
 <p><span class="math">\(r = r_{0} + v_{0} * t + \frac{at^2}{2}\)</span></p>
 <p>This rearranges to:</p>
 <p><span class="math">\(at^2 + 2v_{0}t + 2r_{0} - 2r = 0\)</span></p>
-<p>We can solve this using the Quadratic Equation, but this will yield us two results. In general we can say that we are interested in the result with the maxium value.</p>
+<p>We can solve this using the Quadratic Equation, but this will yield us two results. In general we can say that we are interested in the result with the maximum value.</p>
 <p>In the next block of code you can see an example of call out to Java(Script). Clojure doesn't have an in-built square root function, so we are calling out to the Java(Script) version. A function named in the form <code>foo/bar</code> means it will call the function <code>bar</code> in the namespace <code>foo</code>. You might be wondering, what is a namespace?.</p>
 <p>All good languages need a way to bundle up code that is related, so that it can be reused and accessed only when needed. Clojure's take on this is to provide namespaces. Every Clojure source file will declare its namespace at the top of the file so that other files can reference it, extract values and use functions. Given that Clojure is a hosted language its namespace will related to packages in Java and Google Closure Library namespaces in Javascript.</p>
 <p>When hosted on Java all of java.util.* is automatically imported and on JavaScript assorted core and Google Closure Library modules are imported. Both of these languages provide us with a Math namespace which contains a <code>sqrt</code> function.</p>
@@ -144,7 +140,7 @@ Fill canvas
 <p><span class="math">\(-F_{i}d + mgd = 0 - \frac{1}{2}mv^2\)</span></p>
 <p>This equation can be rearranged to:</p>
 <p><span class="math">\(F_{i} = mg + \frac{mv^2}{2d}\)</span></p>
-<p>For simplicity of code we are just going to consider the y axis as this is the most important when it comes to working out the impact force of the paint into the canvase. The above equation can therefore be expressed as:</p>
+<p>For simplicity of code we are just going to consider the y axis as this is the most important when it comes to working out the impact force of the paint into the canvas. The above equation can therefore be expressed as:</p>
 <pre class="sourceCode clojure"><code class="sourceCode clojure">(<a href="http://clojuredocs.org/clojure_core/clojure.core/defn" target="_blank" class="kw">defn</a><span class="fu"> impact-force </span>[mass velocity]
   (<a href="http://clojuredocs.org/clojure_core/clojure.core/let" target="_blank" class="kw">let</a> [y-gravity (<a href="http://clojuredocs.org/clojure_core/clojure.core/second" target="_blank" class="kw">second</a> gravity)
         y-velocity (<a href="http://clojuredocs.org/clojure_core/clojure.core/second" target="_blank" class="kw">second</a> velocity)]
@@ -165,7 +161,7 @@ Fill canvas
 </ul>
 <p><span class="math">\(B = V - (2 * (V.N) * N)\)</span></p>
 <p>You can find out a bit more about the derivation on this <a href="http://mathworld.wolfram.com/Reflection.html">Wolfram page</a>.</p>
-<p>We are missing a few of the required vector operations used in this equation so we should define some more functions before trying to implement it. The first is the vector dot product, this is defined as the sum of the multiples of each dimension. Otherwise we need substraction of two vectors and a function to multiply a vector by a constant.</p>
+<p>We are missing a few of the required vector operations used in this equation so we should define some more functions before trying to implement it. The first is the vector dot product, this is defined as the sum of the multiples of each dimension. Otherwise we need subtraction of two vectors and a function to multiply a vector by a constant.</p>
 <pre class="sourceCode clojure"><code class="sourceCode clojure">(<a href="http://clojuredocs.org/clojure_core/clojure.core/defn" target="_blank" class="kw">defn</a><span class="fu"> dot-product </span>[vector1 vector2]
   (<a href="http://clojuredocs.org/clojure_core/clojure.core/reduce" target="_blank" class="kw">reduce</a> <a href="http://clojuredocs.org/clojure_core/clojure.core/+" target="_blank" class="kw">+</a> (<a href="http://clojuredocs.org/clojure_core/clojure.core/map" target="_blank" class="kw">map</a> <a href="http://clojuredocs.org/clojure_core/clojure.core/*" target="_blank" class="kw">*</a> vector1 vector2)))
 
@@ -205,7 +201,7 @@ Fill canvas
 </ul>
 <pre class="sourceCode clojure"><code class="sourceCode clojure">(<a href="http://clojuredocs.org/clojure_core/clojure.core/defn" target="_blank" class="kw">defn</a><span class="fu"> random-between </span>[lower-bound upper-bound]
   (<a href="http://clojuredocs.org/clojure_core/clojure.core/+" target="_blank" class="kw">+</a> lower-bound (<a href="http://clojuredocs.org/clojure_core/clojure.core/rand" target="_blank" class="kw">rand</a> (<a href="http://clojuredocs.org/clojure_core/clojure.core/-" target="_blank" class="kw">-</a> upper-bound lower-bound))))</code></pre>
-<p>need some blurb about this algo, hopefully find something from the asimuth</p>
+<p>Below is an algorithm that will give well distributed random unit vectors. It was ported from code found <a href="http://www.gamedev.net/topic/499972-generate-a-random-unit-vector/#entry4261773">in GameDev the forums</a>.</p>
 <pre class="sourceCode clojure"><code class="sourceCode clojure">(<a href="http://clojuredocs.org/clojure_core/clojure.core/defn" target="_blank" class="kw">defn</a><span class="fu"> random-unit-vector </span>[]
   (<a href="http://clojuredocs.org/clojure_core/clojure.core/let" target="_blank" class="kw">let</a> [asimuth (<a href="http://clojuredocs.org/clojure_core/clojure.core/*" target="_blank" class="kw">*</a> (<a href="http://clojuredocs.org/clojure_core/clojure.core/rand" target="_blank" class="kw">rand</a>) <span class="dv">2</span> Math/PI)
         k (<a href="http://clojuredocs.org/clojure_core/clojure.core/-" target="_blank" class="kw">-</a> (<a href="http://clojuredocs.org/clojure_core/clojure.core/rand" target="_blank" class="kw">rand</a> <span class="dv">2</span>) <span class="dv">1</span>)
@@ -216,19 +212,21 @@ Fill canvas
 
 (<a href="http://clojuredocs.org/clojure_core/clojure.core/defn" target="_blank" class="kw">defn</a><span class="fu"> vector-add </span>[vector1 vector2]
   (<a href="http://clojuredocs.org/clojure_core/clojure.core/map" target="_blank" class="kw">map</a> <a href="http://clojuredocs.org/clojure_core/clojure.core/+" target="_blank" class="kw">+</a> vector1 vector2))</code></pre>
-<p>need to walk between a start and end position in a random fashion</p>
+<p>Now that we have a random direction in which to move we need to generate an unbounded path that will move in that direction, but randomise the position of each point within provided bounds.</p>
+<p>Firstly, we can define a function that will generate a random vector inside of lower and upper bounds that can be combined with the non-randomised position to provide a randomised path.</p>
 <pre class="sourceCode clojure"><code class="sourceCode clojure">(<a href="http://clojuredocs.org/clojure_core/clojure.core/defn" target="_blank" class="kw">defn</a><span class="fu"> random-vector-between </span>[lower upper]
   [(random-between lower upper)
    (random-between lower upper)
-   (random-between lower upper)])
-
-(<a href="http://clojuredocs.org/clojure_core/clojure.core/defn" target="_blank" class="kw">defn</a><span class="fu"> random-path </span>[position step-vector bounds]
+   (random-between lower upper)])</code></pre>
+<p>In order to provide an unbounded path we can use a lazy sequence. This function returns a value that is somewhat akin to list that never ends. Every time you try to look at the next value in the list it will generate one just in time for you to see no end.</p>
+<p>In this function the first value returned should always be the initial starting position, each following value should be a step along the path. You can see this below, it returns the position argument cons'd with another iteration of random-path with the position randomised.</p>
+<pre class="sourceCode clojure"><code class="sourceCode clojure">(<a href="http://clojuredocs.org/clojure_core/clojure.core/defn" target="_blank" class="kw">defn</a><span class="fu"> random-path </span>[position step-vector bounds]
   (<a href="http://clojuredocs.org/clojure_core/clojure.core/cons" target="_blank" class="kw">cons</a> position
         (<a href="http://clojuredocs.org/clojure_core/clojure.core/lazy-seq" target="_blank" class="kw">lazy-seq</a> (random-path (vector-add (vector-add position step-vector)
                                            (random-vector-between (<a href="http://clojuredocs.org/clojure_core/clojure.core/-" target="_blank" class="kw">-</a> <span class="dv">0</span> bounds) bounds))
                                step-vector bounds))))</code></pre>
-<p>what is an anchor point for a bezier curve? added min/max steps to try and guide whether this is a flick, as well as the variation in random positions</p>
-<pre class="sourceCode clojure"><code class="sourceCode clojure">(<a href="http://clojuredocs.org/clojure_core/clojure.core/defn" target="_blank" class="kw">defn</a><span class="fu"> anchor-points </span>[position min-distance max-distance min-steps max-steps variation]
+<p>We can now use this random-path lazy sequence to generate a list of control points given an initial starting point and some bounding variables. The distance, step and variation allow us to request long winding paths or short flicks.</p>
+<pre class="sourceCode clojure"><code class="sourceCode clojure">(<a href="http://clojuredocs.org/clojure_core/clojure.core/defn" target="_blank" class="kw">defn</a><span class="fu"> control-points </span>[position min-distance max-distance min-steps max-steps variation]
   (<a href="http://clojuredocs.org/clojure_core/clojure.core/let" target="_blank" class="kw">let</a> [direction       (random-unit-vector)
         distance        (random-between min-distance max-distance)
         steps           (random-between min-steps max-steps)
@@ -238,7 +236,11 @@ Fill canvas
                                     (vector-multiply-by-constant step-vector steps))]
     (<a href="http://clojuredocs.org/clojure_core/clojure.core/conj" target="_blank" class="kw">conj</a> (<a href="http://clojuredocs.org/clojure_core/clojure.core/vec" target="_blank" class="kw">vec</a> random-positions) end-position)))
 </code></pre>
-<p>de casteljau code ripped from pollock, needs a REWRITE and a whole bunch of explanation</p>
+<p>In order to turn this list of control points into a list of points that represent a path we need an algorithm. The most commonly used is a recursive algorithm proved by De Casteljau. There is a <a href="https://www.youtube.com/watch?v=YATikPP2q70">great video on YouTube</a> explaining this algorithm that I recommend you watch.</p>
+<p>At the core of the algorithm is an equation that will return a point along a line weighted by a variable, <span class="math">\(t\)</span> which dictates how close it is to each end of the line:</p>
+<p><span class="math">\(P = (1 - t)P_{0} + tP_{1}\)</span></p>
+<p>For example, if a line runs from <span class="math">\(P_{0}\)</span> to <span class="math">\(P_{1}\)</span> and <span class="math">\(t\)</span> is 0 then the outputted point with be equal to <span class="math">\(P_{0}\)</span> and if it is 1 then <span class="math">\(P_{1}\)</span>.</p>
+<p>De Casteljau's algorithm recursively creates a new set of points by using the above equation for a fixed <span class="math">\(t\)</span> against all the lines created by the control points. It does this until there is just a single point, this is a point on the bezier curve. It <span class="math">\(t\)</span> from 0 to 1 and for each step gets a point along the curve.</p>
 <pre class="sourceCode clojure"><code class="sourceCode clojure">(<a href="http://clojuredocs.org/clojure_core/clojure.core/defn" target="_blank" class="kw">defn</a><span class="fu"> recur-relation </span>[t a b]
   (<a href="http://clojuredocs.org/clojure_core/clojure.core/+" target="_blank" class="kw">+</a> (<a href="http://clojuredocs.org/clojure_core/clojure.core/*" target="_blank" class="kw">*</a> t b) (<a href="http://clojuredocs.org/clojure_core/clojure.core/*" target="_blank" class="kw">*</a> a (<a href="http://clojuredocs.org/clojure_core/clojure.core/-" target="_blank" class="kw">-</a> <span class="dv">1</span> t))))
 
@@ -257,7 +259,7 @@ Fill canvas
         z-vals (<a href="http://clojuredocs.org/clojure_core/clojure.core/map" target="_blank" class="kw">map</a> #(<a href="http://clojuredocs.org/clojure_core/clojure.core/nth" target="_blank" class="kw">nth</a> % <span class="dv">2</span>) control-points)
         points (<a href="http://clojuredocs.org/clojure_core/clojure.core/map" target="_blank" class="kw">map</a> #(for-t % [x-vals y-vals z-vals]) (<a href="http://clojuredocs.org/clojure_core/clojure.core/range" target="_blank" class="kw">range</a> <span class="dv">0</span> <span class="dv">1</span> step-amount))]
     points))</code></pre>
-<p>this can generate paths that go below the canvas, we should set these to 0 as it is the equivalent of painting on the canvas</p>
+<p>This can generate paths that go below the canvas, we should set these to 0 as it is the equivalent of painting on the canvas</p>
 <pre class="sourceCode clojure"><code class="sourceCode clojure">(<a href="http://clojuredocs.org/clojure_core/clojure.core/defn" target="_blank" class="kw">defn</a><span class="fu"> ensure-above-canvas </span>[<a href="http://clojuredocs.org/clojure_core/clojure.core/path" target="_blank" class="kw">path</a>]
   (<a href="http://clojuredocs.org/clojure_core/clojure.core/map" target="_blank" class="kw">map</a> (<a href="http://clojuredocs.org/clojure_core/clojure.core/fn" target="_blank" class="kw">fn</a> [[i j k]] [i (<a href="http://clojuredocs.org/clojure_core/clojure.core/if" target="_blank" class="kw">if</a> (<a href="http://clojuredocs.org/clojure_core/clojure.core/&lt;" target="_blank" class="kw">&lt;</a> j <span class="dv">0</span>) <span class="dv">0</span> j) k]) <a href="http://clojuredocs.org/clojure_core/clojure.core/path" target="_blank" class="kw">path</a>))
 
@@ -316,7 +318,7 @@ Fill canvas
 
 </code></pre>
 <h2 id="putting-it-all-together">Putting it all together</h2>
-<p>I've pulled a bunch of colours that Pollock used in his seminal work &quot;Number 8&quot; so that each flick of paint can be rendered in a random colour out of this pallete</p>
+<p>I've pulled a bunch of colours that Pollock used in his seminal work &quot;Number 8&quot; so that each flick of paint can be rendered in a random colour out of this palette</p>
 <pre class="sourceCode clojure"><code class="sourceCode clojure">(<a href="http://clojuredocs.org/clojure_core/clojure.core/def" target="_blank" class="kw">def</a><span class="fu"> canvas-colour </span>[<span class="dv">142</span> <span class="dv">141</span> <span class="dv">93</span>])
 
 (<a href="http://clojuredocs.org/clojure_core/clojure.core/def" target="_blank" class="kw">def</a><span class="fu"> paint-colours</span>
@@ -331,7 +333,7 @@ Fill canvas
 <pre class="sourceCode clojure"><code class="sourceCode clojure">(<a href="http://clojuredocs.org/clojure_core/clojure.core/defn" target="_blank" class="kw">defn</a><span class="fu"> fling-paint </span>[]
   (<a href="http://clojuredocs.org/clojure_core/clojure.core/let" target="_blank" class="kw">let</a> [position       (starting-point)
         total-time     (random-between <span class="dv">1</span> <span class="dv">5</span>)
-        <a href="http://clojuredocs.org/clojure_core/clojure.core/path" target="_blank" class="kw">path</a>           (ensure-above-canvas (de-casteljau (anchor-points position <span class="fl">0.1</span> <span class="dv">2</span> <span class="dv">3</span> <span class="dv">15</span> <span class="fl">0.4</span>) <span class="fl">0.01</span>))
+        <a href="http://clojuredocs.org/clojure_core/clojure.core/path" target="_blank" class="kw">path</a>           (ensure-above-canvas (de-casteljau (control-points position <span class="fl">0.1</span> <span class="dv">2</span> <span class="dv">3</span> <span class="dv">15</span> <span class="fl">0.4</span>) <span class="fl">0.01</span>))
         velocities     (path-velocities <a href="http://clojuredocs.org/clojure_core/clojure.core/path" target="_blank" class="kw">path</a> total-time)
         masses         (path-masses <a href="http://clojuredocs.org/clojure_core/clojure.core/path" target="_blank" class="kw">path</a> (random-between <span class="fl">0.1</span> <span class="dv">1</span>))
         projected-path (<a href="http://clojuredocs.org/clojure_core/clojure.core/map" target="_blank" class="kw">map</a> #(project-point %<span class="dv">1</span> %<span class="dv">2</span>) <a href="http://clojuredocs.org/clojure_core/clojure.core/path" target="_blank" class="kw">path</a> velocities)
@@ -355,7 +357,7 @@ Fill canvas
 
 </code></pre>
 <h2 id="rendering-the-canvas">Rendering the canvas</h2>
-<p>We need to know the available size for the outputted image to fit in. To work this out we are going to have to interface with JavaScript directly. Luckily ClojureScript makes this very easy using the js namespace.</p>
+<p>We need to know the available size for the outputted image to fit in. To work this out we are going to have to interface with JavaScript directly. Luckily ClojureScript makes this very easy using the <code>js</code> namespace.</p>
 <pre class="sourceCode clojure"><code class="sourceCode clojure">(<a href="http://clojuredocs.org/clojure_core/clojure.core/def" target="_blank" class="kw">def</a><span class="fu"> image-width </span>(.-clientWidth (.querySelector js/document <span class="st">&quot;#pollock&quot;</span>)))</code></pre>
 <p>Now we have the width of the image we can use the dimensions of the space to work out the pixel size of the image and how to convert between metres and pixels.</p>
 <pre class="sourceCode clojure"><code class="sourceCode clojure">(<a href="http://clojuredocs.org/clojure_core/clojure.core/def" target="_blank" class="kw">def</a><span class="fu"> pixels-in-a-metre</span>
