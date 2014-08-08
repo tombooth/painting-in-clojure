@@ -291,22 +291,6 @@
     (+ (* mass y-gravity) (/ (* mass y-velocity y-velocity)
                              (* 2 impact-distance)))))
 
-;; In order to work out this value as a scalar we will need to be able
-;; to calculate the absolute value of a vector. This can be done by
-;; summing the squares of the vector's components and then taking the
-;; square root of that summation.
-
-;; This function will introduce a shorthand for defining functions
-;; that is very useful in combination with functions like `map` and
-;; `reduce`. Rather than writing `(fn [args...] body)` you can use
-;; `#(body)` and if you want access to the arguments use `%n` where
-;; `n` is the position of the argument. If you are only expecting one
-;; argument then you can use just `%` on its own.
-
-(defn vector-absolute [vector]
-  (Math/sqrt (reduce + (map #(* % %) vector))))
-
-
 ;; Based of this function to calculate the impact force we can define
 ;; a predicate that will tell us whether paint should splatter based
 ;; off its mass and velocity. It is idiomatic in Clojure to end
@@ -345,6 +329,13 @@
 
 (defn vector-subtraction [vector1 vector2]
   (map - vector1 vector2))
+
+;; This function will introduce a shorthand for defining functions
+;; that is very useful in combination with functions like `map` and
+;; `reduce`. Rather than writing `(fn [args...] body)` you can use
+;; `#(body)` and if you want access to the arguments use `%n` where
+;; `n` is the position of the argument. If you are only expecting one
+;; argument then you can use just `%` on its own.
 
 (defn vector-multiply-by-constant [vector constant]
   (map #(* % constant) vector))
