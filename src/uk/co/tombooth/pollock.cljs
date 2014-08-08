@@ -7,7 +7,11 @@
 
 ;; <h1 style="background-color:red;color:white;display:inline-block;">DRAFT ARTICLE</h1>
 
-;; Learning Clojure by building a digital Jackson Pollock.
+;; Learning Clojure by building a digital Jackson Pollock. This
+;; article and the source code backing it can be [found on
+;; github](https://www.github.com/tombooth/painting-in-clojure).
+;; Below is an example of what we will be building, running the code
+;; found in this page.
 
 
 ;; <canvas id="pollock" style="width: 100%; border: 5px solid #eee"></canvas>
@@ -15,6 +19,15 @@
 ;; <button id="fill">Fill canvas</button>
 
 
+
+;; ## Jackson Pollock
+
+;; He was an abstract artist who lived through the first half of the
+;; 20th century and is most famous for his drip paintings. This style
+;; of painting involves him using sticks brushes, sticks and cans to
+;; apply paint to the canvas with the motion of his gestures causing
+;; the artworks to come alive. You can get a good idea of how this
+;; comes together from [this youtube video](https://www.youtube.com/watch?v=7bICqvmKL5s).
 
 ;; ## Setting the scene
 
