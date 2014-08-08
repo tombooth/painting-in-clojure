@@ -257,6 +257,40 @@
 ;; work out the impact force of the paint and use this as a cutoff for
 ;; whether the paint should splatter.
 
+;; We will work out the impact force of the paint by taking the
+;; velocity at impact and calculating the force required to reduce
+;; that velocity to 0 over a set impact distance.
+
+(def impact-distance 0.05)
+
+;; We can now use the work-energy principle
+;; (https://en.wikipedia.org/wiki/Work_(physics)#Work_and_energy) to
+;; calculate the impact force. On one side of the equation we will
+;; have the forces at play and the other the energy:
+
+;;    - $F_{i}$ = impact force,
+;;    - d       = impact distance,
+;;    - m       = mass,
+;;    - g       = gravity,
+;;    - v       = velocity at impact.
+
+;; $-F_{i}d + mgd = 0 - \frac{1}{2}mv^2$
+
+;; This equation can be rearranged to:
+
+;; $F_{i} = mg + \frac{mv^2}{2d}$
+
+;; For simplicity of code we are just going to consider the y axis as
+;; this is the most important when it comes to working out the impact
+;; force of the paint into the canvase. The above equation can
+;; therefore be expressed as:
+
+(defn impact-force [mass velocity]
+  (let [y-gravity (second gravity)
+        y-velocity (second velocity)]
+    (+ (* mass y-gravity) (/ (* mass y-velocity y-velocity)
+                             (* 2 impact-distance)))))
+
 ;; In order to work out this value as a scalar we will need to be able
 ;; to calculate the absolute value of a vector. This can be done by
 ;; summing the squares of the vector's components and then taking the
@@ -272,13 +306,6 @@
 (defn vector-absolute [vector]
   (Math/sqrt (reduce + (map #(* % %) vector))))
 
-;; **need something about why it is ok this is velocity and not
-;; acceleration, maybe because it is the relative acceleration of the
-;; imapct of the two objects (paint has velocity, cavnas doesn't so
-;; accel = velocity?)**
-
-(defn impact-force [mass velocity]
-  (* (vector-absolute velocity) mass))
 
 ;; Based of this function to calculate the impact force we can define
 ;; a predicate that will tell us whether paint should splatter based
@@ -288,7 +315,7 @@
 ;; points. Also defined is a minimum force for us to consider whether
 ;; some paint could splatter.
 
-(def min-impact-force-for-splatter 50)
+(def min-impact-force-for-splatter 30)
 
 (defn does-impact-splatter? [mass velocity]
   (and (> (impact-force mass velocity) min-impact-force-for-splatter)
@@ -546,7 +573,7 @@
         total-time     (random-between 1 5)
         path           (ensure-above-canvas (de-casteljau (anchor-points position 0.1 2 3 15 0.4) 0.01))
         velocities     (path-velocities path total-time)
-        masses         (path-masses path (random-between 5 30))
+        masses         (path-masses path (random-between 0.1 1))
         projected-path (map #(project-point %1 %2) path velocities)
         splatter       (map (fn [[position velocity] mass]
                               (if (does-impact-splatter? mass velocity)
@@ -624,10 +651,13 @@
 ;; using the initial paint amount as the stroke-weight. This allows
 ;; for a smooth decrease in the width of the path.
 
+(defn mass-to-weight [mass]
+  (* 50 mass))
+
 (defn draw-path [path]
   (doall
    (map-2 (fn [[position1 _ mass] [position2 _ _]]
-            (q/stroke-weight mass)
+            (q/stroke-weight (mass-to-weight mass))
             (apply q/line (concat (position-to-pixel position1) (position-to-pixel position2))))
           path)))
 
@@ -636,7 +666,7 @@
 
 (defn draw-splats [path]
   (doall (map (fn [[position _ mass]]
-                (q/stroke-weight mass)
+                (q/stroke-weight (mass-to-weight mass))
                 (apply q/point (position-to-pixel position)))
               path)))
 
