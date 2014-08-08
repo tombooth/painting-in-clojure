@@ -309,13 +309,15 @@
 ;; vector as this is the direction it will leave its current position.
 
 ;; The equation to bounce a vector, $V$, off a plane with normal, $N$, is:
-;; **needs rewriting http://mathworld.wolfram.com/Reflection.html**
 ;; 
 ;;    - $N$ is the normal vector of the plane
 ;;    - $V$ = the incoming vector
 ;;    - $B$ is the outgoing, bounced, vector
 ;; 
 ;;  $B = V - (2 * (V.N) * N)$
+;;
+;; You can find out a bit more about the derivation on this [Wolfram
+;; page](http://mathworld.wolfram.com/Reflection.html).
 
 ;; We are missing a few of the required vector operations used in this
 ;; equation so we should define some more functions before trying to
@@ -343,8 +345,7 @@
 
 ;; Using the above functions we can now implement the vector bouncing
 ;; equation. I have pulled $(2 * (V.N) * N)$ out into a variable
-;; called extreme for clarity. **I don't think extreme is a much
-;; better name than blah**
+;; called extreme for clarity.
 
 (defn bounce-vector [vector normal]
   (let [vector-dot-normal (dot-product vector normal)
@@ -353,12 +354,11 @@
 
 
 ;; When an impact splatters it will only take a fraction of the
-;; velocity, otherwise know as being na inelastic rather than elastic
+;; velocity, otherwise know as being an inelastic rather than elastic
 ;; collision. We can define a constant that will be
 ;; used to reduce the total velocity of the bounced vector to reflect
 ;; this elasticity.
 
-;; **should this splatter vector be randomised a little bit?**
 
 (def splatter-dampening-constant 0.7)
 
