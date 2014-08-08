@@ -194,11 +194,15 @@ Fill canvas
 
 </code></pre>
 <h2 id="paths-vs-points">Paths vs Points</h2>
-<p>having all the code for dealing with a point is all well and good, but we need to be dealing with paths</p>
-<p>I've had a play with path generation before and besier curves gave a nice output</p>
-<p>De Casteljau's algorithm is the way we shall be coming up with paths</p>
-<p>first off we need to generate the anchor points for the curve</p>
-<p>to do this we will need to be able to: - get a random number between two points (for distance, steps) - get a random direction - add vectors</p>
+<p>All of the gestures Pollock makes are fluid paths, even if the velocity along the path might be rather erratic. We now need to work out how to generate a path of points that we can then use the code we have written above to project and splatter.</p>
+<p>A <a href="https://en.wikipedia.org/wiki/B%C3%A9zier_curve">Bezier curve</a> is a commonly used curve for generating a smooth curve that can be scaled indefinitely allowing us to have as many points along our path as we care to calculate.</p>
+<p>Bezier curves are defined by an list of control points, so we need to be able to generate a potential unbounded list of random control points that should give use limitless different paths to paint with.</p>
+<p>In order to generate a list of control points we will need to be able to:</p>
+<ul>
+<li>get a random number between two points for distance and steps,</li>
+<li>get a random unit vector for the initial direction of the generation,</li>
+<li>add vectors together to move between our control points.</li>
+</ul>
 <pre class="sourceCode clojure"><code class="sourceCode clojure">(<a href="http://clojuredocs.org/clojure_core/clojure.core/defn" target="_blank" class="kw">defn</a><span class="fu"> random-between </span>[lower-bound upper-bound]
   (<a href="http://clojuredocs.org/clojure_core/clojure.core/+" target="_blank" class="kw">+</a> lower-bound (<a href="http://clojuredocs.org/clojure_core/clojure.core/rand" target="_blank" class="kw">rand</a> (<a href="http://clojuredocs.org/clojure_core/clojure.core/-" target="_blank" class="kw">-</a> upper-bound lower-bound))))</code></pre>
 <p>need some blurb about this algo, hopefully find something from the asimuth</p>
@@ -263,7 +267,7 @@ Fill canvas
 
 </code></pre>
 <h2 id="motion-going-through-the-paces">Motion, going through the paces</h2>
-<p>all the points along the generated path should have an associated velocity. To start with we can generate a linear velocity along the path, given a randomised total time to traverse the path and the total length of the path.</p>
+<p>All the points along the generated path should have an associated velocity. To start with we can generate a linear velocity along the path, given a randomised total time to traverse the path and the total length of the path.</p>
 <p>In order to calculate the length of the paths, we will want to do something similar to a map but with pairs of values. Using this we can take two points, calculate the distance between them and then sum all the distances</p>
 <pre class="sourceCode clojure"><code class="sourceCode clojure">(<a href="http://clojuredocs.org/clojure_core/clojure.core/defn" target="_blank" class="kw">defn</a><span class="fu"> map-2 </span>[f coll]
   (<a href="http://clojuredocs.org/clojure_core/clojure.core/when-let" target="_blank" class="kw">when-let</a> [s (<a href="http://clojuredocs.org/clojure_core/clojure.core/seq" target="_blank" class="kw">seq</a> coll)]
@@ -292,7 +296,7 @@ Fill canvas
         time-between (<a href="http://clojuredocs.org/clojure_core/clojure.core/*" target="_blank" class="kw">*</a> total-time (<a href="http://clojuredocs.org/clojure_core/clojure.core//" target="_blank" class="kw">/</a> (distance-between-points point1 point2)
                                       total-distance))]
     (vector-divide-by-const difference-vector time-between)))</code></pre>
-<p>this calculation will leave off the last points velocity, so for now we can just set it to 0</p>
+<p>This calculation will leave off the last points velocity, we can just set it to 0</p>
 <pre class="sourceCode clojure"><code class="sourceCode clojure">(<a href="http://clojuredocs.org/clojure_core/clojure.core/defn" target="_blank" class="kw">defn</a><span class="fu"> path-velocities </span>[<a href="http://clojuredocs.org/clojure_core/clojure.core/path" target="_blank" class="kw">path</a> total-time]
   (<a href="http://clojuredocs.org/clojure_core/clojure.core/let" target="_blank" class="kw">let</a> [total-distance   (path-length <a href="http://clojuredocs.org/clojure_core/clojure.core/path" target="_blank" class="kw">path</a>)
         number-of-points (<a href="http://clojuredocs.org/clojure_core/clojure.core/count" target="_blank" class="kw">count</a> <a href="http://clojuredocs.org/clojure_core/clojure.core/path" target="_blank" class="kw">path</a>)]
@@ -301,7 +305,7 @@ Fill canvas
                                          total-distance)
                       <a href="http://clojuredocs.org/clojure_core/clojure.core/path" target="_blank" class="kw">path</a>))
           [<span class="dv">0</span> <span class="dv">0</span> <span class="dv">0</span>])))</code></pre>
-<p>as well as the velocity at each point along the path, we also need how much paint there is falling. Again to keep life simple we are going to model this as a linear flow along the path with there always being no paint left.</p>
+<p>As well as the velocity at each point along the path, we also need how much paint there is falling. Again to keep life simple we are going to model this as a linear flow along the path with there always being no paint left.</p>
 <pre class="sourceCode clojure"><code class="sourceCode clojure">(<a href="http://clojuredocs.org/clojure_core/clojure.core/defn" target="_blank" class="kw">defn</a><span class="fu"> path-masses </span>[<a href="http://clojuredocs.org/clojure_core/clojure.core/path" target="_blank" class="kw">path</a> initial-mass]
   (<a href="http://clojuredocs.org/clojure_core/clojure.core/let" target="_blank" class="kw">let</a> [number-of-points (<a href="http://clojuredocs.org/clojure_core/clojure.core/count" target="_blank" class="kw">count</a> <a href="http://clojuredocs.org/clojure_core/clojure.core/path" target="_blank" class="kw">path</a>)
         step (<a href="http://clojuredocs.org/clojure_core/clojure.core/-" target="_blank" class="kw">-</a> <span class="dv">0</span> (<a href="http://clojuredocs.org/clojure_core/clojure.core//" target="_blank" class="kw">/</a> initial-mass number-of-points))]
@@ -323,7 +327,7 @@ Fill canvas
 
 (<a href="http://clojuredocs.org/clojure_core/clojure.core/defn" target="_blank" class="kw">defn</a><span class="fu"> pick-a-colour </span>[]
   (<a href="http://clojuredocs.org/clojure_core/clojure.core/nth" target="_blank" class="kw">nth</a> paint-colours (<a href="http://clojuredocs.org/clojure_core/clojure.core/rand-int" target="_blank" class="kw">rand-int</a> (<a href="http://clojuredocs.org/clojure_core/clojure.core/count" target="_blank" class="kw">count</a> paint-colours))))</code></pre>
-<p>now we need to assemble all of the above functions into something that will work out everything</p>
+<p>Now we need to assemble all of the above functions into something the resembles Jackson Pollock applying paint to a canvas. We start with a point, project a path, work out masses and velocities, project and then splatter. This is all then packaged up with a colour for drawing onto our canvas.</p>
 <pre class="sourceCode clojure"><code class="sourceCode clojure">(<a href="http://clojuredocs.org/clojure_core/clojure.core/defn" target="_blank" class="kw">defn</a><span class="fu"> fling-paint </span>[]
   (<a href="http://clojuredocs.org/clojure_core/clojure.core/let" target="_blank" class="kw">let</a> [position       (starting-point)
         total-time     (random-between <span class="dv">1</span> <span class="dv">5</span>)
