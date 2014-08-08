@@ -398,7 +398,9 @@
 (defn random-between [lower-bound upper-bound]
   (+ lower-bound (rand (- upper-bound lower-bound))))
 
-;; need some blurb about this algo, hopefully find something from the asimuth
+;; Below is an algorithm that will give well distributed random unit
+;; vectors. It was ported from code found [in GameDev the
+;; forums](http://www.gamedev.net/topic/499972-generate-a-random-unit-vector/#entry4261773).
 
 (defn random-unit-vector []
   (let [asimuth (* (rand) 2 Math/PI)
@@ -411,12 +413,29 @@
 (defn vector-add [vector1 vector2]
   (map + vector1 vector2))
 
-;; need to walk between a start and end position in a random fashion
+;; Now that we have a random direction in which to move we need to
+;; generate an unbounded path that will move in that direction, but
+;; randomise the position of each point within provided bounds.
+
+;; Firstly, we can define a function that will generate a random
+;; vector inside of lower and upper bounds that can be combined with
+;; the unrandomised position to provide a randomised path.
 
 (defn random-vector-between [lower upper]
   [(random-between lower upper)
    (random-between lower upper)
    (random-between lower upper)])
+
+;; In order to provide an unbounded path we can use a lazy sequence.
+;; This function returns a value that is somewhat akin to list that
+;; never ends. Everytime you try to look at the next value in the list
+;; it will generate one just in time for you to see no end.
+
+;; In this function the first value returned should always be the
+;; initial starting position, each following value should be a step
+;; along the path. You can see this below, it returns the position
+;; argument cons'd with another interation of random-path with the
+;; position randomised.
 
 (defn random-path [position step-vector bounds]
   (cons position
@@ -424,11 +443,12 @@
                                            (random-vector-between (- 0 bounds) bounds))
                                step-vector bounds))))
 
-;; what is an anchor point for a bezier curve?
-;; added min/max steps to try and guide whether this is a flick, as
-;; well as the variation in random positions
+;; We can now use this random-path lazy sequence to generate a list of
+;; control points given an initial starting point and some bounding
+;; variables. The distance, step and variation allow us to request long
+;; winding paths or short flicks.
 
-(defn anchor-points [position min-distance max-distance min-steps max-steps variation]
+(defn control-points [position min-distance max-distance min-steps max-steps variation]
   (let [direction       (random-unit-vector)
         distance        (random-between min-distance max-distance)
         steps           (random-between min-steps max-steps)
@@ -439,8 +459,28 @@
     (conj (vec random-positions) end-position)))
 
 
-;; de casteljau code ripped from pollock, needs a REWRITE and a whole
-;; bunch of explanation
+;; In order to turn this list of control points into a list of points
+;; that represent a path we need an algorithm. The most commonly used
+;; is a recursive algorithm proved by De Casteljau. There is a [great
+;; video on YouTube](https://www.youtube.com/watch?v=YATikPP2q70)
+;; explaining this algorithm that I recommend you watch.
+
+;; At the core of the algorithm is an equation that will return a
+;; point along a line weighted by a variable, $t$ which dictates how
+;; close it is to each end of the line:
+
+;; $P = (1 - t)P_{0} + tP_{1}$
+
+;; For example, if a line runs
+;; from $P_{0}$ to $P_{1}$ and $t$ is 0 then the outputted point with
+;; be equal to $P_{0}$ and if it is 1 then $P_{1}$.
+
+;; De Casteljau's algorithm recursively creates a new set of points by
+;; using the above equation for a fixed $t$ against all the lines
+;; created by the control points. It does this until there is just a
+;; single point, this is a point on the bezier curve. It $t$ from 0 to
+;; 1 and for each step gets a point along the curve.
+
 
 (defn recur-relation [t a b]
   (+ (* t b) (* a (- 1 t))))
@@ -461,7 +501,7 @@
         points (map #(for-t % [x-vals y-vals z-vals]) (range 0 1 step-amount))]
     points))
 
-;; this can generate paths that go below the canvas, we should set
+;; This can generate paths that go below the canvas, we should set
 ;; these to 0 as it is the equivalent of painting on the canvas
 
 (defn ensure-above-canvas [path]
@@ -569,7 +609,7 @@
 (defn fling-paint []
   (let [position       (starting-point)
         total-time     (random-between 1 5)
-        path           (ensure-above-canvas (de-casteljau (anchor-points position 0.1 2 3 15 0.4) 0.01))
+        path           (ensure-above-canvas (de-casteljau (control-points position 0.1 2 3 15 0.4) 0.01))
         velocities     (path-velocities path total-time)
         masses         (path-masses path (random-between 0.1 1))
         projected-path (map #(project-point %1 %2) path velocities)
