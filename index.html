@@ -157,13 +157,14 @@ Fill canvas
   (<a href="http://clojuredocs.org/clojure_core/clojure.core/and" target="_blank" class="kw">and</a> (<a href="http://clojuredocs.org/clojure_core/clojure.core/&gt;" target="_blank" class="kw">&gt;</a> (impact-force mass velocity) min-impact-force-for-splatter)
        (<a href="http://clojuredocs.org/clojure_core/clojure.core/&gt;" target="_blank" class="kw">&gt;</a> (<a href="http://clojuredocs.org/clojure_core/clojure.core/rand" target="_blank" class="kw">rand</a>) <span class="fl">0.8</span>)))</code></pre>
 <p>If an impact splatters then we will need to bounce its velocity vector as this is the direction it will leave its current position.</p>
-<p>The equation to bounce a vector, <span class="math">\(V\)</span>, off a plane with normal, <span class="math">\(N\)</span>, is: <strong>needs rewriting http://mathworld.wolfram.com/Reflection.html</strong></p>
+<p>The equation to bounce a vector, <span class="math">\(V\)</span>, off a plane with normal, <span class="math">\(N\)</span>, is:</p>
 <ul>
 <li><span class="math">\(N\)</span> is the normal vector of the plane</li>
 <li><span class="math">\(V\)</span> = the incoming vector</li>
 <li><span class="math">\(B\)</span> is the outgoing, bounced, vector</li>
 </ul>
 <p><span class="math">\(B = V - (2 * (V.N) * N)\)</span></p>
+<p>You can find out a bit more about the derivation on this <a href="http://mathworld.wolfram.com/Reflection.html">Wolfram page</a>.</p>
 <p>We are missing a few of the required vector operations used in this equation so we should define some more functions before trying to implement it. The first is the vector dot product, this is defined as the sum of the multiples of each dimension. Otherwise we need substraction of two vectors and a function to multiply a vector by a constant.</p>
 <pre class="sourceCode clojure"><code class="sourceCode clojure">(<a href="http://clojuredocs.org/clojure_core/clojure.core/defn" target="_blank" class="kw">defn</a><span class="fu"> dot-product </span>[vector1 vector2]
   (<a href="http://clojuredocs.org/clojure_core/clojure.core/reduce" target="_blank" class="kw">reduce</a> <a href="http://clojuredocs.org/clojure_core/clojure.core/+" target="_blank" class="kw">+</a> (<a href="http://clojuredocs.org/clojure_core/clojure.core/map" target="_blank" class="kw">map</a> <a href="http://clojuredocs.org/clojure_core/clojure.core/*" target="_blank" class="kw">*</a> vector1 vector2)))
@@ -174,14 +175,13 @@ Fill canvas
 <pre class="sourceCode clojure"><code class="sourceCode clojure">(<a href="http://clojuredocs.org/clojure_core/clojure.core/defn" target="_blank" class="kw">defn</a><span class="fu"> vector-multiply-by-constant </span>[<a href="http://clojuredocs.org/clojure_core/clojure.core/vector" target="_blank" class="kw">vector</a> constant]
   (<a href="http://clojuredocs.org/clojure_core/clojure.core/map" target="_blank" class="kw">map</a> #(<a href="http://clojuredocs.org/clojure_core/clojure.core/*" target="_blank" class="kw">*</a> % constant) <a href="http://clojuredocs.org/clojure_core/clojure.core/vector" target="_blank" class="kw">vector</a>))
 </code></pre>
-<p>Using the above functions we can now implement the vector bouncing equation. I have pulled <span class="math">\((2 * (V.N) * N)\)</span> out into a variable called extreme for clarity. <strong>I don't think extreme is a much better name than blah</strong></p>
+<p>Using the above functions we can now implement the vector bouncing equation. I have pulled <span class="math">\((2 * (V.N) * N)\)</span> out into a variable called extreme for clarity.</p>
 <pre class="sourceCode clojure"><code class="sourceCode clojure">(<a href="http://clojuredocs.org/clojure_core/clojure.core/defn" target="_blank" class="kw">defn</a><span class="fu"> bounce-vector </span>[<a href="http://clojuredocs.org/clojure_core/clojure.core/vector" target="_blank" class="kw">vector</a> normal]
   (<a href="http://clojuredocs.org/clojure_core/clojure.core/let" target="_blank" class="kw">let</a> [vector-dot-normal (dot-product <a href="http://clojuredocs.org/clojure_core/clojure.core/vector" target="_blank" class="kw">vector</a> normal)
         extreme (vector-multiply-by-constant normal (<a href="http://clojuredocs.org/clojure_core/clojure.core/*" target="_blank" class="kw">*</a> <span class="dv">2</span> vector-dot-normal))]
     (vector-subtraction <a href="http://clojuredocs.org/clojure_core/clojure.core/vector" target="_blank" class="kw">vector</a> extreme)))
 </code></pre>
-<p>When an impact splatters it will only take a fraction of the velocity, otherwise know as being na inelastic rather than elastic collision. We can define a constant that will be used to reduce the total velocity of the bounced vector to reflect this elasticity.</p>
-<p><strong>should this splatter vector be randomised a little bit?</strong></p>
+<p>When an impact splatters it will only take a fraction of the velocity, otherwise know as being an inelastic rather than elastic collision. We can define a constant that will be used to reduce the total velocity of the bounced vector to reflect this elasticity.</p>
 <pre class="sourceCode clojure"><code class="sourceCode clojure">(<a href="http://clojuredocs.org/clojure_core/clojure.core/def" target="_blank" class="kw">def</a><span class="fu"> splatter-dampening-constant </span><span class="fl">0.7</span>)
 
 (<a href="http://clojuredocs.org/clojure_core/clojure.core/defn" target="_blank" class="kw">defn</a><span class="fu"> splatter-vector </span>[velocity]
