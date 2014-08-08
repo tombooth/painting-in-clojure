@@ -52,7 +52,7 @@ Fill canvas
             <span class="dv">6</span>]) <span class="co">;; depth</span></code></pre>
 <p>We need to know the gravity of the space so it can influence the flow of paint as it leaves the brush. This will be defined as a vector that represents acceleration influenced by gravity.</p>
 <pre class="sourceCode clojure"><code class="sourceCode clojure">(<a href="http://clojuredocs.org/clojure_core/clojure.core/def" target="_blank" class="kw">def</a><span class="fu"> gravity </span>[<span class="dv">0</span> -<span class="fl">9.8</span> <span class="dv">0</span>])</code></pre>
-<p>Lastly, we need to know the normal of the surface of the canvas that the paint will impact with. This will be used to dictate how paint acts when it spatters from the impact with the canvas. (Maybe it should be used to define what the coords are that the paint has to impact with, it doesn't at the moment)</p>
+<p>Lastly, we need to know the normal of the surface of the canvas that the paint will impact with. This will be used to dictate how paint acts when it spatters from the impact with the canvas.</p>
 <pre class="sourceCode clojure"><code class="sourceCode clojure">(<a href="http://clojuredocs.org/clojure_core/clojure.core/def" target="_blank" class="kw">def</a><span class="fu"> canvas-normal </span>[<span class="dv">0</span> <span class="dv">1</span> <span class="dv">0</span>])
 
 
@@ -68,18 +68,18 @@ Fill canvas
 <p>We can now define a random point inside of space as follows</p>
 <pre class="sourceCode clojure"><code class="sourceCode clojure">(<a href="http://clojuredocs.org/clojure_core/clojure.core/defn" target="_blank" class="kw">defn</a><span class="fu"> starting-point </span>[] (<a href="http://clojuredocs.org/clojure_core/clojure.core/map" target="_blank" class="kw">map</a> <a href="http://clojuredocs.org/clojure_core/clojure.core/rand" target="_blank" class="kw">rand</a> space))
 </code></pre>
-<p>Now that we can generate a random point in space we want to project this to the canvas. We are going to use <a href="http://wiki">Newtonian equations of motion</a>, we know the position, velocity and acceleration of the point and we want to know what the position and velocity are when y is 0. In order to work out final positions we need to know the total time the point spent falling, we can do this using the y position as we know that the final position should be 0.</p>
+<p>Now that we can generate a random point in space we want to project this to the canvas. We are going to use <a href="https://en.wikipedia.org/wiki/Equations_of_motion">Newtonian equations of motion</a>, we know the position, velocity and acceleration of the point and we want to know what the position and velocity are when y is 0. In order to work out final positions we need to know the total time the point spent falling, we can do this using the y position as we know that the final position should be 0.</p>
 <p>To work out the time it takes for the point to reach the canvas we will solve the following equation for t:</p>
 <ul>
 <li><span class="math">\(r\)</span> = final displacement,</li>
-<li><span class="math">\(r0\)</span> = initial displacement,</li>
-<li><span class="math">\(v0\)</span> = initial velocity,</li>
+<li><span class="math">\(r_{0}\)</span> = initial displacement,</li>
+<li><span class="math">\(v_{0}\)</span> = initial velocity,</li>
 <li><span class="math">\(a\)</span> = acceleration,</li>
 <li><span class="math">\(t\)</span> = time.</li>
 </ul>
-<p><span class="math">\(r = r0 + v0 * t + \frac{at^2}{2}\)</span></p>
+<p><span class="math">\(r = r_{0} + v_{0} * t + \frac{at^2}{2}\)</span></p>
 <p>This rearranges to:</p>
-<p><span class="math">\(at^2 + 2v0t + 2r0 - 2r = 0\)</span></p>
+<p><span class="math">\(at^2 + 2v_{0}t + 2r_{0} - 2r = 0\)</span></p>
 <p>We can solve this using the Quadratic Equation, but this will yield us two results. In general we can say that we are interested in the result with the maxium value.</p>
 <p>In this function you can see an example of call out to Java. Clojure doesn't have an inbuilt sqrt function so we are calling out to the java version. A function named in the form <code>foo/bar</code> means it will call the function <code>bar</code> in the namespace <code>foo</code>. <strong>NEED TO WRITE: WHAT IS A NAMESPACE?</strong></p>
 <pre class="sourceCode clojure"><code class="sourceCode clojure">(<a href="http://clojuredocs.org/clojure_core/clojure.core/defn" target="_blank" class="kw">defn</a><span class="fu"> time-to-canvas </span>[position velocity acceleration]
@@ -97,7 +97,7 @@ Fill canvas
      (<a href="http://clojuredocs.org/clojure_core/clojure.core/*" target="_blank" class="kw">*</a> initial-velocity <a href="http://clojuredocs.org/clojure_core/clojure.core/time" target="_blank" class="kw">time</a>)
      (<a href="http://clojuredocs.org/clojure_core/clojure.core//" target="_blank" class="kw">/</a> (<a href="http://clojuredocs.org/clojure_core/clojure.core/*" target="_blank" class="kw">*</a> acceleration <a href="http://clojuredocs.org/clojure_core/clojure.core/time" target="_blank" class="kw">time</a> <a href="http://clojuredocs.org/clojure_core/clojure.core/time" target="_blank" class="kw">time</a>) <span class="dv">2</span>)))</code></pre>
 <p>For velocity we can use another equation of motion:</p>
-<p><span class="math">\(v = at + v0\)</span></p>
+<p><span class="math">\(v = at + v_{0}\)</span></p>
 <pre class="sourceCode clojure"><code class="sourceCode clojure">(<a href="http://clojuredocs.org/clojure_core/clojure.core/defn" target="_blank" class="kw">defn</a><span class="fu"> velocity-at </span>[<a href="http://clojuredocs.org/clojure_core/clojure.core/time" target="_blank" class="kw">time</a> initial-velocity acceleration]
   (<a href="http://clojuredocs.org/clojure_core/clojure.core/+" target="_blank" class="kw">+</a> (<a href="http://clojuredocs.org/clojure_core/clojure.core/*" target="_blank" class="kw">*</a> acceleration <a href="http://clojuredocs.org/clojure_core/clojure.core/time" target="_blank" class="kw">time</a>) initial-velocity))
 </code></pre>
@@ -406,5 +406,6 @@ Fill canvas
     </footer>
     <script src="js/processing-1.4.8.js" type="text/javascript" charset="utf-8"></script>
     <script src="js/main.js" type="text/javascript" charset="utf-8"></script>
+    <script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
   </body>
 </html>
