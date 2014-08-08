@@ -88,9 +88,7 @@
 
 ;; Lastly, we need to know the normal of the surface of the canvas that
 ;; the paint will impact with. This will be used to dictate how paint
-;; acts when it spatters from the impact with the canvas. (Maybe it
-;; should be used to define what the coords are that the paint has to
-;; impact with, it doesn't at the moment)
+;; acts when it spatters from the impact with the canvas.
 
 (def canvas-normal [0 1 0])
 
