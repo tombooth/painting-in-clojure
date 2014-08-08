@@ -151,16 +151,16 @@
 ;; will solve the following equation for t:
 ;;
 ;;    - $r$  = final displacement,
-;;    - $r0$ = initial displacement,
-;;    - $v0$ = initial velocity,
+;;    - $r_{0}$ = initial displacement,
+;;    - $v_{0}$ = initial velocity,
 ;;    - $a$  = acceleration,
 ;;    - $t$  = time.
 ;;
-;; $r = r0 + v0 * t + \frac{at^2}{2}$
+;; $r = r_{0} + v_{0} * t + \frac{at^2}{2}$
 ;;
 ;; This rearranges to:
 ;;
-;; $at^2 + 2v0t + 2r0 - 2r = 0$
+;; $at^2 + 2v_{0}t + 2r_{0} - 2r = 0$
 ;;
 ;; We can solve this using the Quadratic Equation, but this will yield
 ;; us two results. In general we can say that we are interested in the
@@ -192,7 +192,7 @@
 
 ;; For velocity we can use another equation of motion:
 ;;
-;; $v = at + v0$
+;; $v = at + v_{0}$
 
 (defn velocity-at [time initial-velocity acceleration]
   (+ (* acceleration time) initial-velocity))
