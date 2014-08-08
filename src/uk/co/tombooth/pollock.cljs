@@ -374,21 +374,26 @@
 
 ;; ## Paths vs Points
 
-;; having all the code for dealing with a point is all well and good,
-;; but we need to be dealing with paths
+;; All of the gestures Pollock makes are fluid paths, even if the
+;; velocity along the path might be rather erratic. We now need to
+;; work out how to generate a path of points that we can then use the
+;; code we have written above to project and splatter.
 
-;; I've had a play with path generation before and besier curves gave
-;; a nice output
+;; A [Bezier curve](https://en.wikipedia.org/wiki/B%C3%A9zier_curve)
+;; is a commonly used curve for generating a smooth curve that can be
+;; scaled indefinitely allowing us to have as many points along our
+;; path as we care to calculate.
 
-;; De Casteljau's algorithm is the way we shall be coming up with
-;; paths
+;; Bezier curves are defined by an list of control points, so we need
+;; to be able to generate a potential unbounded list of random control
+;; points that should give use limitless different paths to paint with.
 
-;; first off we need to generate the anchor points for the curve
+;; In order to generate a list of control points we will need to be
+;; able to:
 
-;; to do this we will need to be able to:
-;;   - get a random number between two points (for distance, steps)
-;;   - get a random direction
-;;   - add vectors
+;;   - get a random number between two points for distance and steps,
+;;   - get a random unit vector for the initial direction of the generation,
+;;   - add vectors together to move between our control points.
 
 (defn random-between [lower-bound upper-bound]
   (+ lower-bound (rand (- upper-bound lower-bound))))
@@ -470,7 +475,7 @@
 
 ;; ## Motion, going through the paces
 
-;; all the points along the generated path should have an associated
+;; All the points along the generated path should have an associated
 ;; velocity. To start with we can generate a linear velocity along the
 ;; path, given a randomised total time to traverse the path and the
 ;; total length of the path.
@@ -512,8 +517,7 @@
                                       total-distance))]
     (vector-divide-by-const difference-vector time-between)))
 
-;; this calculation will leave off the last points velocity, so for
-;; now we can just set it to 0
+;; This calculation will leave off the last points velocity,  we can just set it to 0
 
 (defn path-velocities [path total-time]
   (let [total-distance   (path-length path)
@@ -524,7 +528,7 @@
                       path))
           [0 0 0])))
 
-;; as well as the velocity at each point along the path, we also need
+;; As well as the velocity at each point along the path, we also need
 ;; how much paint there is falling. Again to keep life simple we are
 ;; going to model this as a linear flow along the path with there
 ;; always being no paint left.
@@ -556,8 +560,11 @@
 (defn pick-a-colour []
   (nth paint-colours (rand-int (count paint-colours))))
 
-;; now we need to assemble all of the above functions into something
-;; that will work out everything
+;; Now we need to assemble all of the above functions into something
+;; the resembles Jackson Pollock applying paint to a canvas. We start
+;; with a point, project a path, work out masses and velocities,
+;; project and then splatter. This is all then packaged up with a
+;; colour for drawing onto our canvas.
 
 (defn fling-paint []
   (let [position       (starting-point)
