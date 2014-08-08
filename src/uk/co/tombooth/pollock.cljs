@@ -256,8 +256,8 @@
 
 ;; In order to work out this value as a scalar we will need to be able
 ;; to calculate the absolute value of a vector. This can be done by
-;; summing the squares of the dimensions **is it dimensions and not
-;; some other lingo** and then take the square root of that summation.
+;; summing the squares of the vector's components and then taking the
+;; square root of that summation.
 
 ;; This function will introduce a shorthand for defining functions
 ;; that is very useful in combination with functions like `map` and
