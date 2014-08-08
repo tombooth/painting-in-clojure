@@ -186,6 +186,9 @@
 ;; are imported. Both of these languages provide us with a Math
 ;; namespace which contains a `sqrt` function.
 
+;; If you want to learn more about Clojure -> Java(Script) interop
+;; then have a read [of this article](http://clojure-doc.org/articles/language/interop.html).
+
 (defn time-to-canvas [position velocity acceleration]
   (let [a acceleration
         b (* 2 velocity)
