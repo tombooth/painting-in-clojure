@@ -140,7 +140,8 @@
 
 ;; Now that we can generate a random point in space we want to project
 ;; this to the canvas. We are going to use [Newtonian equations of
-;; motion](http://wiki), we know the position, velocity and acceleration of the
+;; motion](https://en.wikipedia.org/wiki/Equations_of_motion),
+;; we know the position, velocity and acceleration of the
 ;; point and we want to know what the position and velocity are when y
 ;; is 0. In order to work out final positions we need to know the
 ;; total time the point spent falling, we can do this using the y
