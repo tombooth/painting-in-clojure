@@ -9,7 +9,7 @@
 
 ;; Learning Clojure by building a digital Jackson Pollock. This
 ;; article and the source code backing it can be [found on
-;; github](https://www.github.com/tombooth/painting-in-clojure).
+;; GitHub](https://www.github.com/tombooth/painting-in-clojure).
 ;; Below is an example of what we will be building, running the code
 ;; found in this page.
 
@@ -49,7 +49,7 @@
 ;;    - A string, represented as a sequence of characters, for example
 ;;      `"Hello world!"`;
 ;;    - A keyword, which are very similar to strings in appearance
-;;      except they are preceeded by a colon e.g. `:an-identifier`. As
+;;      except they are preceded by a colon e.g. `:an-identifier`. As
 ;;      alluded to in the example they are usually used for identifiers or
 ;;      labels and do not allow spaces.
 ;;    - A list `(...)`, this is a way of grouping values into a
@@ -164,7 +164,7 @@
 ;;
 ;; We can solve this using the Quadratic Equation, but this will yield
 ;; us two results. In general we can say that we are interested in the
-;; result with the maxium value.
+;; result with the maximum value.
 ;;
 ;; In the next block of code you can see an example of call out to Java(Script).
 ;; Clojure doesn't have an in-built square root function, so we are calling out
@@ -282,7 +282,7 @@
 
 ;; For simplicity of code we are just going to consider the y axis as
 ;; this is the most important when it comes to working out the impact
-;; force of the paint into the canvase. The above equation can
+;; force of the paint into the canvas. The above equation can
 ;; therefore be expressed as:
 
 (defn impact-force [mass velocity]
@@ -323,7 +323,7 @@
 ;; equation so we should define some more functions before trying to
 ;; implement it. The first is the vector dot product, this is defined
 ;; as the sum of the multiples of each dimension. Otherwise we need
-;; substraction of two vectors and a function to multiply a vector by
+;; subtraction of two vectors and a function to multiply a vector by
 ;; a constant.
 
 (defn dot-product [vector1 vector2]
@@ -419,7 +419,7 @@
 
 ;; Firstly, we can define a function that will generate a random
 ;; vector inside of lower and upper bounds that can be combined with
-;; the unrandomised position to provide a randomised path.
+;; the non-randomised position to provide a randomised path.
 
 (defn random-vector-between [lower upper]
   [(random-between lower upper)
@@ -428,13 +428,13 @@
 
 ;; In order to provide an unbounded path we can use a lazy sequence.
 ;; This function returns a value that is somewhat akin to list that
-;; never ends. Everytime you try to look at the next value in the list
+;; never ends. Every time you try to look at the next value in the list
 ;; it will generate one just in time for you to see no end.
 
 ;; In this function the first value returned should always be the
 ;; initial starting position, each following value should be a step
 ;; along the path. You can see this below, it returns the position
-;; argument cons'd with another interation of random-path with the
+;; argument cons'd with another iteration of random-path with the
 ;; position randomised.
 
 (defn random-path [position step-vector bounds]
@@ -587,7 +587,7 @@
 
 ;; I've pulled a bunch of colours that Pollock used in his seminal
 ;; work "Number 8" so that each flick of paint can be rendered in a
-;; random colour out of this pallete
+;; random colour out of this palette
 
 (def canvas-colour [142 141 93])
 
@@ -638,7 +638,7 @@
 ;; We need to know the available size for the outputted image to fit
 ;; in. To work this out we are going to have to interface with
 ;; JavaScript directly. Luckily ClojureScript makes this very easy
-;; using the js namespace.
+;; using the `js` namespace.
 
 (def image-width (.-clientWidth (.querySelector js/document "#pollock")))
 
